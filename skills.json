@@ -1,0 +1,13 @@
+{
+  "$schema": "https://raw.githubusercontent.com/arcads-ai/skills/main/skills-schema.json",
+  "version": "1",
+  "repository": "https://github.com/arcads-ai/skills",
+  "skills": [
+    {
+      "name": "winning-ad",
+      "description": "Strategic workflow for creating high-converting social media ads on Arcads. Use proactively when a user asks to generate, create, produce, or make any image or video for advertising, marketing, or brand content.",
+      "url": "https://raw.githubusercontent.com/arcads-ai/skills/main/winning-ad/SKILL.md",
+      "tags": ["advertising", "video", "image", "arcads", "social-media", "tiktok", "instagram"]
+    }
+  ]
+}
