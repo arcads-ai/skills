@@ -27,8 +27,16 @@ For every question, use the `mcp_Question` tool to render a form with selectable
 
 ### Q1 — Brand & product
 "What brand or product is this ad for?"
-- No predefined options here — this is always free text. Ask it as a plain conversational message (no form needed for this one).
-- Once they answer, infer what you can (brand vibe, category) and move to Q2.
+- No predefined options here — always free text. Ask it as a plain conversational message (no form needed for this one).
+- A company name alone is **not enough**. You need to understand the actual product. If the user only gives a brand name, follow up with the product detail questions below before moving to Q2.
+
+**If product details are missing or vague, ask (one at a time, plain conversational messages):**
+
+1. **What is the product?** — What does it do? What category is it (skincare, food, app, clothing, supplement, SaaS...)?
+2. **What makes it special?** — Key benefit, differentiator, or the one thing the customer should remember after seeing the ad.
+3. **Do you have a product image or visual reference?** — If yes, ask them to share it. If they do, use it as a `referenceImage` when generating. This dramatically improves product accuracy.
+
+Only move to Q2 once you have enough to visualize the product clearly.
 
 ### Q2 — Platform / format
 "Where will this ad run?"
@@ -76,12 +84,80 @@ Options:
 
 ---
 
-## Step 2 — Generate the image first (always)
+## Step 2 — Competitive research (optional, always offer)
+
+After collecting the brand and product information, ask the user whether they want you to do a quick competitive research pass before generating anything. Use `mcp_Question`:
+
+"Before we start creating, want me to do a quick competitive analysis? I can look at what competitors are doing, what's working for them, and what your customers are already saying — then give you a strategy recommendation."
+- Yes, research first — give me the full picture
+- No, let's go straight to generating
+
+### If they say yes — run all of this in parallel
+
+**1. Competitor research**
+Search for the top 3–5 direct competitors of the product. For each one, try to find:
+- What platforms they advertise on (TikTok, Instagram, YouTube, etc.)
+- The type of ads they run (UGC, product shots, cinematic, influencer)
+- Their apparent messaging angle (price, quality, lifestyle, emotion, problem-solution)
+- Any notable creative patterns (hooks, formats, recurring themes)
+
+Use `mcp_Webfetch` to search and pull data. Good sources: their own website, social media pages, ad libraries (Meta Ad Library, TikTok Creative Center if accessible), review sites.
+
+**2. User feedback on competitors**
+For each competitor found, look for:
+- What customers praise (what the ad promise delivers on)
+- What customers complain about (unmet expectations, product or brand weaknesses)
+- Recurring emotional themes in reviews
+
+Good sources: App Store reviews, Google reviews, Reddit, Trustpilot, Amazon reviews.
+
+**3. User feedback on the brand's own product**
+Search for reviews and feedback on the user's product specifically:
+- What do customers love most?
+- What do they criticize?
+- What words and phrases do real customers use to describe it? (These are gold for ad copy and hooks.)
+
+### Present findings cleanly
+
+Summarize everything in a single, structured message. No technical details, no raw URLs — just the insight. Format example:
+
+---
+**Competitive landscape**
+- Competitor A: focuses on Instagram Reels with UGC reviews, messaging around affordability
+- Competitor B: runs cinematic YouTube ads, high-end lifestyle positioning
+- Competitor C: TikTok-first, hook-driven, lots of before/after formats
+
+**What's working in this market**
+[2–3 sentences on recurring winning patterns]
+
+**What customers want but aren't getting**
+[gaps or frustrations that appear repeatedly in reviews]
+
+**Your product — what customers say**
+[key praise and criticism from real reviews]
+
+**Recommended ad strategy**
+Based on this, here's what I'd recommend for [product]:
+- Platform: [best fit based on where competitors are winning or where there's a gap]
+- Format: [UGC / product shot / cinematic / etc.]
+- Hook angle: [the emotional or functional angle most likely to convert]
+- Differentiator to highlight: [what sets this product apart from the competition]
+---
+
+Then use `mcp_Question` to confirm direction:
+
+"Does this strategy feel right, or do you want to adjust the direction before we start?"
+- Looks great — let's create the ad with this strategy
+- I'd like to tweak the angle (free text)
+- Ignore the research, I have my own direction (free text)
+
+---
+
+## Step 3 — Generate the image first (always)
 
 **Even if the user asked for a video, generate an image first.** This is the fastest way to validate the visual direction — aspect ratio, style, mood, product placement — before spending time on video generation (which takes longer and costs more).
 
-Tell the user something like:
-> "I'm going to generate a still image first so we can lock in the look before animating."
+Tell the user something like "Working on a first visual — give me a moment." while generation runs. Do not mention model names, generation time estimates, or any technical step.
 
 ### Choosing the right image model
 
@@ -106,11 +182,16 @@ Build a rich prompt from the discovery answers. A good prompt includes:
 **Example prompt structure:**
 > "Photorealistic product shot of [product] on a clean white marble surface, soft diffused studio lighting, minimalist aesthetic, centered composition, 9:16 vertical format. The packaging is clearly visible. Brand colors: black and gold."
 
-### After generating — always preview the result
+### After generating — always download and display the result
 
-Once the asset is ready (`arcads_get_asset` returns status `GENERATED`), call `arcads_watch_asset` to get the signed URL and **display the image inline** so the user can see it immediately without leaving the conversation.
+Once the asset is ready:
+1. Call `arcads_watch_asset` to get the signed URL
+2. Download the file to a local temp path (e.g. `/tmp/arcads-preview.<ext>`) using `curl -sL "<url>" -o /tmp/arcads-preview.jpg`
+3. Display it using the `mcp_Read` tool on that local file path — this renders it as an inline preview next to the chat
 
-Then use `mcp_Question` to ask for approval with clear options:
+Do not mention asset IDs, S3 paths, polling status, or any technical detail. Just say something like "Here's the first look:" and show the file.
+
+Then use `mcp_Question` to ask for approval:
 
 "How does this look?"
 - Looks great — let's animate it
@@ -121,7 +202,7 @@ Do not move to video generation until the user selects "Looks great" or equivale
 
 ---
 
-## Step 3 — Animate to video (after image approval)
+## Step 4 — Animate to video (after image approval)
 
 Once the image is approved, use it as the `startFrame` for video generation. This ensures visual continuity between the still and the motion.
 
@@ -163,9 +244,14 @@ arcads_generate_video(
 )
 ```
 
-### After generating — always preview the result
+### After generating — always download and display the result
 
-Once the video asset is ready, call `arcads_watch_asset` and **display the video inline** using the signed URL so the user can watch it directly in the conversation.
+Once the video is ready:
+1. Call `arcads_watch_asset` to get the signed URL
+2. Download to a local temp path: `curl -sL "<url>" -o /tmp/arcads-preview.mp4`
+3. Display it using the `mcp_Read` tool on that local file path — this renders the video as an inline preview next to the chat
+
+Never show asset IDs, processing status, or tool output. Just say something like "Here's your video:" and show the file.
 
 Then use `mcp_Question` to gather feedback:
 
@@ -177,7 +263,7 @@ Then use `mcp_Question` to gather feedback:
 
 ---
 
-## Step 4 — Enhancements (optional, offer proactively)
+## Step 5 — Enhancements (optional, offer proactively)
 
 After video generation, offer finishing touches. Use `mcp_Question` to let the user pick what they want to add:
 
@@ -190,7 +276,7 @@ After video generation, offer finishing touches. Use `mcp_Question` to let the u
 - Nothing, it's ready!
 - Other (free text)
 
-Once they choose, execute the enhancement, preview the result inline using `arcads_watch_asset`, and loop again if needed.
+Once they choose, execute the enhancement silently, then download and display the result the same way (curl to `/tmp/`, read the local file). Never expose tool names, asset IDs, or processing steps — just the output. Loop again if needed.
 
 **Reference table:**
 
@@ -210,7 +296,8 @@ Once they choose, execute the enhancement, preview the result inline using `arca
 
 - **Image first, always.** Never go straight to video, even if explicitly asked. Frame it as "let's validate the look first" — users will appreciate it.
 - **One question at a time.** Use `mcp_Question` for every choice moment — platform, style, mood, approval, feedback. Never combine multiple questions into one message. Never ask free-text questions when selectable options exist.
-- **Always preview.** Every generated asset (image or video) must be shown inline via `arcads_watch_asset` before asking for feedback. Never ask "how does it look?" before displaying it.
+- **Always download and preview.** For every generated asset, download it locally with `curl` and display it via `mcp_Read` so it renders next to the chat. Never ask "how does it look?" before displaying it.
+- **No technical leakage.** Never expose asset IDs, S3 paths, model names, tool names, polling status, or processing time in the chat. The user's experience should feel like a creative conversation, not an API log.
 - **Fewer, better questions.** Skip what you already know. If they said "TikTok" → infer 9:16 and don't ask again.
 - **Match the platform.** TikTok/Reels need hooks in the first 2 seconds, punchy captions, vertical format. YouTube/LinkedIn can be more polished and slower-paced.
 - **Think like an ad creative director.** You're not just generating — you're directing. Suggest improvements, flag weak creative direction, propose alternatives.
@@ -238,3 +325,35 @@ Once they choose, execute the enhancement, preview the result inline using `arca
 | `arcads_get_asset` | Poll for asset status |
 | `arcads_watch_asset` | Get signed download URL once ready |
 | `arcads_list_products` | List available products |
+
+---
+
+## Polling strategy — wait first, then poll every minute
+
+Never poll immediately after starting a generation. Each tool has a known expected duration. Wait that long before the first `arcads_get_asset` call, then retry every 60 seconds until status is `GENERATED`.
+
+Use `sleep` to wait between calls:
+```bash
+sleep <seconds>  # wait before first poll
+# then every 60s until GENERATED
+```
+
+| Tool / scenario | First poll after |
+|---|---|
+| Image — nano-banana, seedream, gpt-image | 60s |
+| Image — grok_image | 20s |
+| Image — upscale | 30s |
+| Video — arcads_generate_video (kling_30) | 3 min |
+| Video — arcads_generate_video_kling_30_4k | 4 min |
+| Video — arcads_generate_video_sora2 | 12 min |
+| Video — arcads_generate_video_veo31 | 3 min |
+| Video — arcads_generate_video_seedance_15 | 4 min |
+| Video — arcads_generate_video_grok | 2 min |
+| Talking head — arcads_audio_driven | 7 min |
+| Talking head — arcads_omnihuman | 11 min |
+| Captions / subtitles / text overlay | 2 min |
+| Stitch / trim / layer / extend | 1 min |
+| Upscale video | 3 min |
+| Translate video | 6 min |
+| TTS / STS / voice isolate | 15s |
+| Animate image | 7 min |
