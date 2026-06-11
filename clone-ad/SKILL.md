@@ -2,16 +2,17 @@
 name: clone-ad
 description: >
   Clone a competitor's winning ad on Arcads by pulling a top-performing video from the
-  Meta Ad Library, mapping its actors and scene structure, regenerating each scene with
-  fresh UGC actors, and stitching everything back together for the user's own brand.
-  Use this skill proactively whenever the user wants to copy, clone, replicate, recreate,
-  adapt, or "do the same thing as" a competitor's ad, ad creative, UGC video, or Meta/TikTok
-  ad. This includes phrases like "I want to make the same ad as [competitor]", "clone this
-  ad", "recreate this video for my brand", "do what [brand] is doing", "I saw this ad on
-  Facebook/TikTok and I want one like it", "scrape competitor ads", or anything that implies
-  reusing the structure of an existing ad with a new brand identity. Always use this skill
-  before manually calling arcads_scene_split, arcads_replace_actor, or arcads_stitch_videos
-  when the source material is a competitor ad.
+  Meta Ad Library, mapping its actors, backgrounds and scene structure, regenerating fresh
+  UGC actors and backgrounds, recreating each scene with arcads_generate_video_seedance_20,
+  and stitching everything back together for the user's own brand. Use this skill proactively
+  whenever the user wants to copy, clone, replicate, recreate, adapt, or "do the same thing
+  as" a competitor's ad, ad creative, UGC video, or Meta/TikTok ad. This includes phrases
+  like "I want to make the same ad as [competitor]", "clone this ad", "recreate this video
+  for my brand", "do what [brand] is doing", "I saw this ad on Facebook/TikTok and I want one
+  like it", "scrape competitor ads", or anything that implies reusing the structure of an
+  existing ad with a new brand identity. Always use this skill before manually calling
+  arcads_analyze_media, arcads_generate_image_nano_banana, arcads_generate_video_seedance_20
+  or arcads_stitch_videos when the source material is a competitor ad.
 ---
 
 # Clone Ad Workflow
@@ -24,17 +25,19 @@ This is delicate work. The user is trusting a known-winning format, so don't dri
 
 ## Golden rules
 
-1. **Preview every result inline.** After each generation (actor image, replaced scene, stitched video), download the file with `curl` to `/tmp/` and render it with `mcp_Read` before asking for feedback. The user can't react to what they can't see.
-2. **One competitor video, not five.** Clone the first result returned by the Meta Ad Library query. If the user wants a different one, they'll say so. Don't paralyze the flow with options.
-3. **Preserve scene boundaries.** When you call `arcads_scene_split`, trust its output. Don't re-cut, don't merge — the competitor chose those beats for a reason, and the stitch step expects them back in the same order.
-4. **One actor identity per detected actor.** If actor A appears in scenes 1, 3, and 5, you generate **one** UGC face for actor A and use it across all three. Generating a new face per scene breaks visual continuity and destroys the clone.
-5. **No technical leakage.** Don't show the user asset IDs, S3 paths, MCP tool names, or polling logs. Speak in creative-director language: "Pulling the ad," "Mapping the actors," "Recreating scene 2 with your new actor."
+1. **One question at a time.** Don't overwhelm the user with multiple questions at once. Ask them one by one using `mcp_Question`. Cheap confirmations beat expensive regrets — every confirmation (source ad, actor map, cast approval) saves a much longer regeneration later.
+2. **Preview every result inline.** After each generation (actor image, background, recreated scene, stitched video), download the file with `curl` to `/tmp/` and render it using `present_files` before asking for feedback. The user can't react to what they can't see — they are your QA loop.
+3. **One competitor video, not five.** Clone the first result returned by the Meta Ad Library query. If the user wants a different one, they'll say so. Don't paralyze the flow with options.
+4. **Trust the source structure.** The competitor's ad is winning for reasons you may not be able to articulate — pacing, cut rhythm, scene order. Don't second-guess it, don't re-cut, don't merge scenes. Your value-add is the swap, not the re-edit. The stitch step expects scenes back in their original order.
+5. **One actor identity per detected actor.** If actor A appears in scenes 1, 3, and 5, you generate **one** UGC face for actor A and reuse it across all three. Same rule for backgrounds. Generating a new face or background per scene breaks visual continuity and destroys the clone.
+6. **No technical leakage.** Don't show the user asset IDs, S3 paths, MCP tool names, or polling logs. Speak in creative-director language: "Pulling the ad," "Mapping the actors," "Recreating scene 2 with your new actor."
+7. **Graceful degradation if the browser MCP is missing.** Stop and ask the user to install one — don't pretend `mcp_Webfetch` can scrape Meta's library.
 
 ---
 
 ## Step 1 — Brand & product discovery
 
-Skip any question the user already answered. Use plain conversation for these (not `mcp_Question`) since they're open-ended.
+Skip any question the user already answered. Use plain conversation for these since they're open-ended.
 
 Ask, conversationally:
 
@@ -89,7 +92,7 @@ The Meta Ad Library is JavaScript-rendered and not scrapeable via plain `mcp_Web
 
 ### Show the user what you pulled
 
-Before going further, render the downloaded video inline with `mcp_Read` on `/tmp/clone-source.mp4` and confirm:
+Before going further, render the downloaded video inline with `present_files` on `/tmp/clone-source.mp4` and confirm:
 
 > "Here's the top ad I found for [competitor]. Want to clone this one, or look at the next?"
 
@@ -106,9 +109,13 @@ This is the only "are we cloning the right thing?" confirmation in the flow — 
 
 Call `arcads_analyze_media` on the downloaded video. The goal is to produce a structured map:
 
-- A list of distinct actors appearing in the video (Actor 1, Actor 2, …)
+- A list of distinct actors appearing in the video (Actor 1, Actor 2, …) with age range, gender, mood, look
+- A list of backgrounds with a description
 - A list of scenes in order
-- Which actor(s) appear in each scene
+- For each scene : 
+    - which actor
+    - which background
+    - what the actor does and what he say (the goal is to be able to reproduce the scene)
 
 If `arcads_analyze_media` returns this directly, use its output. If it returns a freer-form description, parse it into the structured map yourself.
 
@@ -117,8 +124,13 @@ If `arcads_analyze_media` returns this directly, use its output. If it returns a
 Show something like:
 
 > "Here's how the ad breaks down:
-> - **Actor 1**: scenes 1, 3, 5 — appears to be a woman, mid-30s, casual
-> - **Actor 2**: scenes 2, 4 — man, late 20s, energetic
+> - **Actor 1**: A man, 30 years old, happy, gothic style
+> - **Actor 2**: A woman, 20 years old, nerd style
+> - **Background 1**: A gamer office. TV screen in the background. No window. smooth light.
+> - **Background 1**: A street. We can see peoples walk behind the caracter. We see road on the right with cars
+> - **Scene 1**: Actor 1, Background 1
+> - **Scene 2**: Actor 2, Background 2
+> - **Scene 2**: Actor 2, Background 1
 > - **Voiceover only**: scene 6
 >
 > Total: 6 scenes. Want me to proceed with this mapping?"
@@ -134,7 +146,7 @@ The user knows the source ad better than the model does. Letting them correct th
 
 ## Step 5 — Generate one UGC face per actor
 
-For each distinct actor in the map, call `arcads_generate_image_ugc_studio` to produce a clean face shot (no background) that will be the new identity for that actor across every scene they appear in.
+For each distinct actor in the map, call `arcads_generate_image_nano_banana` to produce a clean face shot (no background) that will be the new identity for that actor across every scene they appear in.
 
 ### Prompt structure for each actor
 
@@ -148,10 +160,10 @@ Example:
 After each face is generated:
 1. `arcads_watch_asset` → get the signed URL
 2. `curl -sL "<url>" -o /tmp/clone-actor-<N>.png`
-3. Render inline with `mcp_Read`
+3. Render inline with `present_files`
 
 Show all faces together at the end of this step and confirm with `mcp_Question`:
-- All faces look good — let's recreate the scenes
+- All faces look good — let's recreate the background
 - Regenerate actor [X] — they don't fit (free text → revise prompt and rerun)
 - Regenerate all with a different direction (free text)
 
@@ -159,28 +171,46 @@ Don't proceed to scene splitting until the user approves the cast. This is the c
 
 ---
 
-## Step 6 — Split the source video into scenes
+## Step 6 — Generate one background per found backgrounds
 
-Call `arcads_scene_split` on `/tmp/clone-source.mp4`. It returns the scenes as individual clips (likely as asset IDs or URLs).
+For each distinct background in the map, call `arcads_generate_image_nano_banana` to produce a clean background shot that will be used in the new scene. Use the description of the old one to create the new one.
 
-Sanity check the count: does it match the number of scenes you described in Step 4? If they diverge significantly (e.g., you described 6 scenes, splitter returned 12), re-read the splitter output and reconcile — usually the splitter is more granular (B-roll cuts within a single "talking" scene), and you should treat the splitter's units as the canonical scenes from here on. Update your actor→scene map accordingly.
+### Prompt structure for each actor
 
-Do not show this step to the user. It's plumbing.
+Build the prompt from the background's apparent attributes that you extracted in Step 4. Add the user's brand context — a luxury skincare brand wants polished faces, a fitness brand wants energetic ones.
+
+Example:
+> "A late-night cozy gamer room bathed in deep blue and purple hues. A large L-shaped desk sits against the wall with a triple ultrawide monitor setup. The setup features a high-end RGB mechanical keyboard, a glowing mouse pad, and a gaming chair in black and red. Neon LED strips line the back of the desk and ceiling edges, casting a soft purple glow. The walls are covered with anime posters, a katana display, and floating shelves holding gaming collectibles and funko pops. Dark hardwood floor with a geometric rug underneath the chair. Color palette of deep navy, electric purple, and neon pink accents. Shot from a slight low angle facing the desk. Hyper-realistic, cinematic lighting, 8K detail."
+
+### Preview each generated background
+
+After each face is generated:
+1. `arcads_watch_asset` → get the signed URL
+2. `curl -sL "<url>" -o /tmp/clone-background-<N>.png`
+3. Render inline with `present_files`
+
+Show all background together at the end of this step and confirm with `mcp_Question`:
+- All background look good — let's recreate the scenes
+- Regenerate actor [X] — they don't fit (free text → revise prompt and rerun)
+- Regenerate all with a different direction (free text)
+
+Don't proceed to scene splitting until the user approves the cast. This is the cheapest place to fix mistakes.
 
 ---
 
-## Step 7 — Replace the actor in each scene
+## Step 7 — Create the new scenes
 
-For each scene that contains an actor (skip pure voiceover / B-roll scenes that have no human face), call `arcads_replace_actor`:
+For each scenes that contains an actor (skip pure voiceover / B-roll scenes that have no human face), call `arcads_generate_video_seedance_20`:
 
-- **Source scene**: the scene clip from Step 6
-- **New actor reference**: the UGC face image generated in Step 5 for whichever actor appears in this scene
+- **Source background**: the new generated background for the scene (From step 6)
+- **New actor reference**: the new generated actor for the scene (From step 5)
+- **The scene description**: the scene description we get during step 4
 
 Run these in parallel where the MCP allows — they're independent.
 
-### Preview each replaced scene as it comes back
+### Preview each new scene
 
-Download each output with `curl` to `/tmp/clone-scene-<N>.mp4` and render inline with `mcp_Read`. Don't batch — show them as they arrive so the user can flag a bad one early.
+Download each output with `curl` to `/tmp/clone-scene-<N>.mp4` and render inline with `present_files`. Don't batch — show them as they arrive so the user can flag a bad one early.
 
 If a scene replacement looks off (wrong actor mapped, face glitches), regenerate just that one before stitching. It's much cheaper than re-stitching.
 
@@ -196,7 +226,7 @@ Call `arcads_stitch_videos` with the scenes **in their original order** — repl
 
 1. `arcads_watch_asset` → signed URL
 2. `curl -sL "<url>" -o /tmp/clone-final.mp4`
-3. Render inline with `mcp_Read`
+3. Render inline with `present_files`
 
 Then briefly summarize what was cloned:
 
@@ -219,33 +249,13 @@ After approval, offer the same finishing touches as a winning ad:
 - Upscale to 4K → `arcads_upscale_video`
 - Translate for another market → `arcads_translate_video`
 
-Same preview discipline: download with `curl`, render with `mcp_Read`, confirm with `mcp_Question`.
+Same preview discipline: download with `curl`, render with `present_files`, confirm with `mcp_Question`.
 
 ---
 
 ## Polling strategy
 
-Same rules as the rest of the Arcads stack: wait the expected duration before the first poll, then retry every 60s until `GENERATED`. Don't poll immediately — it just burns tokens.
-
-| Step | First poll after |
-|---|---|
-| UGC studio face image | 60s |
-| Scene split | 1 min |
-| Replace actor (per scene) | 3 min |
-| Stitch videos | 1 min |
-| Captions / overlay / TTS | 2 min |
-| Upscale / translate | 3–6 min |
-
----
-
-## Guiding principles
-
-- **Trust the source structure.** The competitor's ad is winning for reasons you may not be able to articulate — pacing, cut rhythm, scene order. Don't second-guess it. Your value-add is the swap, not the re-edit.
-- **One face per actor, every time.** If the same actor appears in three scenes, the same generated face appears in all three. Continuity is what makes the clone believable.
-- **Preview-driven flow.** Every artifact (downloaded source, generated face, replaced scene, final stitch) gets rendered inline before the next step. The user is your QA loop.
-- **Cheap confirmations beat expensive regrets.** Confirm the source ad, confirm the actor map, confirm the generated faces. Each `mcp_Question` here saves a much longer regeneration later.
-- **No technical leakage.** No asset IDs, no S3 URLs, no MCP tool names visible to the user. Speak as a creative director, not an API.
-- **Graceful degradation if the browser MCP is missing.** Stop and ask for it; don't pretend `mcp_Webfetch` can scrape Meta's library.
+Same rules as the rest of the Arcads stack: wait the expected duration before the first poll, then retry every 60s until `GENERATED`. Don't poll immediately — it just burns tokens. The generation time is in the MCP tool description.
 
 ---
 
@@ -254,10 +264,12 @@ Same rules as the rest of the Arcads stack: wait the expected duration before th
 | Tool | Where in the flow |
 |---|---|
 | Browser MCP (Playwright/Chrome) | Step 3 — open Meta Ad Library, capture first video URL |
-| `arcads_analyze_media` | Step 4 — identify actors and scenes |
-| `arcads_generate_image_ugc_studio` | Step 5 — one face image per actor |
-| `arcads_scene_split` | Step 6 — split source video into scenes |
-| `arcads_replace_actor` | Step 7 — swap actor per scene |
-| `arcads_stitch_videos` | Step 8 — reassemble final clone |
+| `arcads_analyze_media` | Step 4 — identify actors, backgrounds and scenes |
+| `arcads_generate_image_nano_banana` | Step 5 — one face image per actor |
+| `arcads_generate_image_nano_banana` | Step 6 — one image per background |
+| `arcads_generate_video_seedance_20` | Step 7 — recreate each scene from new actor + background + description |
+| `arcads_stitch_videos` | Step 8 — reassemble final clone in original scene order |
 | `arcads_watch_asset` | After every generation — get signed URL for download |
+| `present_files` | Inline preview of every downloaded asset |
+| `mcp_Question` | Confirmation points (competitor pick, actor map, cast approval, background approval, final feedback) |
 | `arcads_add_captions` / `arcads_add_text_overlay` / `arcads_text_to_speech` / `arcads_upscale_video` / `arcads_translate_video` | Step 9 — enhancements |
