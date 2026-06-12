@@ -61,11 +61,12 @@ Format each entry as:
 
 For every entry, capture ALL of the following that apply:
 - Visuals: scene, setting, background, lighting, color palette
+- Motion: is each element moving or static? Explicitly say whether people are talking/gesturing vs holding still, and whether any embedded screen / phone / TV / "ad within the ad" is playing live video or showing a frozen image. Flag any split-screen or picture-in-picture and state the motion of EACH panel separately.
 - Camera: movement direction and speed, framing (close-up, wide shot, etc.)
 - People: gender, approximate age, clothing, expression, what they do
 - Dialogue: exact words spoken, in quotes
 - Voice-over: exact words, noted as (voice-over)
-- On-screen text: exact words, font style if notable, position on screen (top/center/bottom, left/right)
+- On-screen text: exact words (transcribe verbatim, letter-for-letter — including brand names and wordmarks), font style if notable, position on screen (top/center/bottom, left/right)
 - Sound: music genre/energy, sound effects, ambient audio
 - Products or props: what appears, how it's shown
 - Transitions: cuts, fades, wipes
@@ -121,6 +122,8 @@ Ask yourself: could a director, actor, and set designer recreate that exact seco
 
 Checklist:
 - Position of text overlays: "center screen", "bottom-left corner", "top third" — not just "on screen"
+- Motion state: every element noted as moving or static — especially embedded screens / split-screen panels / "ad within the ad", so a cloner knows what must be live footage vs a still
+- On-screen text transcribed letter-for-letter, including brand wordmarks (a cloner needs the exact spelling to reproduce or overlay it)
 - Timing: exact seconds with one decimal ("at 3.2s"), not vague ("a few seconds in")
 - Dialogue: quoted verbatim — paraphrasing loses rhythm and specificity
 - Emotional tone: capture the energy, not just the physical facts
