@@ -8,6 +8,12 @@
       "description": "Strategic workflow for creating high-converting social media ads on Arcads. Use proactively when a user asks to generate, create, produce, or make any image or video for advertising, marketing, or brand content.",
       "url": "https://raw.githubusercontent.com/arcads-ai/skills/main/winning-ad/SKILL.md",
       "tags": ["advertising", "video", "image", "arcads", "social-media", "tiktok", "instagram"]
+    },
+    {
+      "name": "spy-competitor-ads",
+      "description": "Research and download the top 5 highest-performing competitor video ads from the Meta Ad Library, ranked by total views/impressions. Use when a user wants to spy on competitors, find winning ads, research what's working in their category, or build a swipe file.",
+      "url": "https://raw.githubusercontent.com/arcads-ai/skills/main/spy-competitor-ads/SKILL.md",
+      "tags": ["competitor", "research", "meta", "ads", "swipe-file", "intelligence", "video"]
     }
   ]
 }
