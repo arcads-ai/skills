@@ -3,16 +3,17 @@ name: clone-ad
 description: >
   Clone a competitor's winning ad on Arcads by pulling a top-performing video from the
   Meta Ad Library, mapping its actors, backgrounds and scene structure, regenerating fresh
-  UGC actors and backgrounds, recreating each scene with arcads_generate_video_seedance_20,
-  and stitching everything back together for the user's own brand. Use this skill proactively
-  whenever the user wants to copy, clone, replicate, recreate, adapt, or "do the same thing
-  as" a competitor's ad, ad creative, UGC video, or Meta/TikTok ad. This includes phrases
-  like "I want to make the same ad as [competitor]", "clone this ad", "recreate this video
-  for my brand", "do what [brand] is doing", "I saw this ad on Facebook/TikTok and I want one
-  like it", "scrape competitor ads", or anything that implies reusing the structure of an
-  existing ad with a new brand identity. Always use this skill before manually calling
-  arcads_analyze_media, arcads_generate_image_nano_banana, arcads_generate_video_seedance_20
-  or arcads_stitch_videos when the source material is a competitor ad.
+  UGC actors and backgrounds, composing a still frame per scene, animating each one as a
+  talking-head with arcads_audio_driven using the extracted script, and stitching everything
+  back together for the user's own brand. Use this skill proactively whenever the user wants
+  to copy, clone, replicate, recreate, adapt, or "do the same thing as" a competitor's ad,
+  ad creative, UGC video, or Meta/TikTok ad. This includes phrases like "I want to make the
+  same ad as [competitor]", "clone this ad", "recreate this video for my brand", "do what
+  [brand] is doing", "I saw this ad on Facebook/TikTok and I want one like it", "scrape
+  competitor ads", or anything that implies reusing the structure of an existing ad with a
+  new brand identity. Always use this skill before manually calling arcads_analyze_media,
+  arcads_generate_image_nano_banana, arcads_audio_driven or arcads_stitch_videos when the
+  source material is a competitor ad.
 ---
 
 # Clone Ad Workflow
@@ -198,27 +199,50 @@ Don't proceed to scene splitting until the user approves the cast. This is the c
 
 ---
 
-## Step 7 — Create the new scenes
+## Step 7 — Compose a still frame per scene
 
-For each scenes that contains an actor (skip pure voiceover / B-roll scenes that have no human face), call `arcads_generate_video_seedance_20`:
+Before animating anything, build the visual for each scene as a still image. This is the cheapest place to validate that the actor, background, and scene action read correctly together — fixing a bad composition here costs one image, fixing it in the talking-head step costs minutes of generation.
 
-- **Source background**: the new generated background for the scene (From step 6)
-- **New actor reference**: the new generated actor for the scene (From step 5)
-- **The scene description**: the scene description we get during step 4
+For each scene that contains an actor (skip pure voiceover / B-roll scenes that have no human face), call `arcads_generate_image_nano_banana` with:
+
+- **The new actor image** (from Step 5) for the actor in this scene
+- **The new background image** (from Step 6) for this scene
+- **The scene description** (from Step 4) — what the actor is doing in the frame (pose, expression, framing, props they interact with)
+
+Goal: a single still that looks like a frame from the new ad — the right actor, in the right background, doing the right thing.
 
 Run these in parallel where the MCP allows — they're independent.
 
-### Preview each new scene
+### Preview each composed frame
 
-Download each output with `curl` to `/tmp/clone-scene-<N>.mp4` and render inline with `present_files`. Don't batch — show them as they arrive so the user can flag a bad one early.
+Download each output with `curl` to `/tmp/clone-frame-<N>.png` and render inline with `present_files`. Don't batch — show them as they arrive so the user can flag a bad composition early.
 
-If a scene replacement looks off (wrong actor mapped, face glitches), regenerate just that one before stitching. It's much cheaper than re-stitching.
+If a frame looks off (wrong actor, weird pose, background mismatch), regenerate just that one before moving on. It's far cheaper than regenerating a talking-head video.
 
-For scenes without actors (voiceover, B-roll product shots), keep the original clip from the source. The clone preserves these untouched.
+For scenes without actors (voiceover-only, B-roll product shots), skip this step — those scenes will keep the original clip from the source.
 
 ---
 
-## Step 8 — Stitch the scenes back together
+## Step 8 — Animate each frame with the actor's script
+
+For each scene frame from Step 7, call `arcads_audio_driven` to turn the still into a talking-head video where the new actor delivers the original line:
+
+- **Source image**: the composed frame from Step 7 (`/tmp/clone-frame-<N>.png`)
+- **Script**: the line the original actor says in this scene — the extracted spoken text from the Step 4 analysis. Preserve the meaning and rhythm; only adapt brand names or product references to the user's brand.
+
+Run these in parallel where possible.
+
+### Preview each animated scene
+
+Download each output with `curl` to `/tmp/clone-scene-<N>.mp4` and render inline with `present_files`. Show them as they arrive so the user can flag a bad one before stitching.
+
+If a scene looks off (lipsync drift, weird mouth shape, voice tone wrong), regenerate just that one. It's still cheaper than redoing the stitch.
+
+For scenes without actors, keep the original clip from the source. The clone preserves these untouched.
+
+---
+
+## Step 9 — Stitch the scenes back together
 
 Call `arcads_stitch_videos` with the scenes **in their original order** — replaced clips where applicable, original clips for B-roll/voiceover scenes. The order is what makes this feel like the same ad with new people, not a remix.
 
@@ -239,7 +263,7 @@ Use `mcp_Question`:
 
 ---
 
-## Step 9 — Enhancements (offer proactively)
+## Step 10 — Enhancements (offer proactively)
 
 After approval, offer the same finishing touches as a winning ad:
 
@@ -264,12 +288,13 @@ Same rules as the rest of the Arcads stack: wait the expected duration before th
 | Tool | Where in the flow |
 |---|---|
 | Browser MCP (Playwright/Chrome) | Step 3 — open Meta Ad Library, capture first video URL |
-| `arcads_analyze_media` | Step 4 — identify actors, backgrounds and scenes |
+| `arcads_analyze_media` | Step 4 — identify actors, backgrounds, scenes and the spoken script per scene |
 | `arcads_generate_image_nano_banana` | Step 5 — one face image per actor |
 | `arcads_generate_image_nano_banana` | Step 6 — one image per background |
-| `arcads_generate_video_seedance_20` | Step 7 — recreate each scene from new actor + background + description |
-| `arcads_stitch_videos` | Step 8 — reassemble final clone in original scene order |
+| `arcads_generate_image_nano_banana` | Step 7 — compose a still frame per scene from actor + background + scene description |
+| `arcads_audio_driven` | Step 8 — animate each frame into a talking-head using the extracted script |
+| `arcads_stitch_videos` | Step 9 — reassemble final clone in original scene order |
 | `arcads_watch_asset` | After every generation — get signed URL for download |
 | `present_files` | Inline preview of every downloaded asset |
 | `mcp_Question` | Confirmation points (competitor pick, actor map, cast approval, background approval, final feedback) |
-| `arcads_add_captions` / `arcads_add_text_overlay` / `arcads_text_to_speech` / `arcads_upscale_video` / `arcads_translate_video` | Step 9 — enhancements |
+| `arcads_add_captions` / `arcads_add_text_overlay` / `arcads_text_to_speech` / `arcads_upscale_video` / `arcads_translate_video` | Step 10 — enhancements |
