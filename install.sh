@@ -51,18 +51,51 @@ import json, sys
 data = json.load(sys.stdin)
 for s in data.get('skills', []):
     print(s['name'])
-" 2>/dev/null || echo "winning-ad"  # fallback if python3 unavailable
+" 2>/dev/null || echo -e "winning-ad\nspy-competitor-ads\nhook-identifier\nhook-cloner\nwinning-hook-pipeline"
 }
 
-clone_or_update() {
-  local target_dir="$1"
-  if [ -d "$target_dir/.git" ]; then
-    info "Updating existing clone at $target_dir..."
-    git -C "$target_dir" pull --ff-only --quiet
-  else
-    info "Cloning into $target_dir..."
-    git clone --depth 1 --quiet "$REPO_URL" "$target_dir"
-  fi
+list_skills_from_local() {
+  # Read skill names from a local skills.json
+  local manifest="$1"
+  python3 -c "
+import json, sys
+data = json.load(open('$manifest'))
+for s in data.get('skills', []):
+    print(s['name'])
+" 2>/dev/null || echo -e "winning-ad\nspy-competitor-ads\nhook-identifier\nhook-cloner\nwinning-hook-pipeline"
+}
+
+clone_to_tmp() {
+  local tmp_dir
+  tmp_dir=$(mktemp -d)
+  info "Fetching skills repository..."
+  git clone --depth 1 --quiet "$REPO_URL" "$tmp_dir/repo"
+  echo "$tmp_dir"
+}
+
+copy_skills_from_tmp() {
+  # Copy only skill folders (listed in manifest) from tmp clone to target dir
+  local tmp_dir="$1"
+  local install_dir="$2"
+  local skills
+  skills=$(list_skills_from_local "$tmp_dir/repo/skills.json")
+
+  mkdir -p "$install_dir"
+
+  while IFS= read -r skill; do
+    [ -z "$skill" ] && continue
+    local src="$tmp_dir/repo/$skill"
+    local dst="$install_dir/$skill"
+    if [ -d "$src" ]; then
+      rm -rf "$dst"
+      cp -r "$src" "$dst"
+      success "  $skill"
+    else
+      warn "  $skill — folder not found in repo, skipping"
+    fi
+  done <<< "$skills"
+
+  rm -rf "$tmp_dir"
 }
 
 fetch_skill_md() {
@@ -80,13 +113,16 @@ fetch_skill_md() {
 # =============================================================================
 
 install_opencode_claude() {
-  # opencode + Claude Code both auto-load ~/.agents/skills/**/SKILL.md
-  # No config change needed — just clone there.
-  local install_dir="${SKILLS_DIR:-$DEFAULT_AGENTS_DIR}/arcads"
-  mkdir -p "$(dirname "$install_dir")"
-  clone_or_update "$install_dir"
-  success "Skills installed at $install_dir"
+  local install_dir="${SKILLS_DIR:-$DEFAULT_AGENTS_DIR}"
+
+  local tmp_dir
+  tmp_dir=$(clone_to_tmp)
+
+  info "Installing skills to $install_dir/"
+  copy_skills_from_tmp "$tmp_dir" "$install_dir"
+
   echo ""
+  echo "  Skills installed at: $install_dir"
   echo "  opencode and Claude Code will auto-load skills from this location."
   echo "  Restart the tool to pick up the changes."
   echo ""

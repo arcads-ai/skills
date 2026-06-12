@@ -8,7 +8,7 @@ Reusable AI skills for creating high-converting ads with [Arcads](https://arcads
 curl -fsSL https://raw.githubusercontent.com/arcads-ai/skills/main/install.sh | bash
 ```
 
-This auto-detects your installed tools and installs skills in the right place for each one.
+This auto-detects your installed tools and installs skills in the right place for each one. Only skill folders are copied — no repo metadata.
 
 ---
 
@@ -28,10 +28,15 @@ Add to `~/.config/opencode/opencode.json`:
 }
 ```
 
-**Option B — Clone and reference by path**
+**Option B — Clone and copy skill folders manually**
 
 ```bash
-git clone https://github.com/arcads-ai/skills.git ~/.agents/skills/arcads
+git clone --depth 1 https://github.com/arcads-ai/skills.git /tmp/arcads-skills
+mkdir -p ~/.agents/skills
+for skill in winning-ad spy-competitor-ads hook-identifier hook-cloner winning-hook-pipeline; do
+  cp -r /tmp/arcads-skills/$skill ~/.agents/skills/
+done
+rm -rf /tmp/arcads-skills
 ```
 
 opencode automatically scans `~/.agents/skills/` — no config change needed.
@@ -41,7 +46,7 @@ opencode automatically scans `~/.agents/skills/` — no config change needed.
 ```json
 {
   "skills": {
-    "paths": ["~/.agents/skills/arcads"]
+    "paths": ["~/.agents/skills"]
   }
 }
 ```
@@ -55,10 +60,15 @@ Restart opencode after any config change.
 Skills placed in `~/.claude/skills/` are auto-loaded.
 
 ```bash
-git clone https://github.com/arcads-ai/skills.git ~/.claude/skills/arcads
+git clone --depth 1 https://github.com/arcads-ai/skills.git /tmp/arcads-skills
+mkdir -p ~/.claude/skills
+for skill in winning-ad spy-competitor-ads hook-identifier hook-cloner winning-hook-pipeline; do
+  cp -r /tmp/arcads-skills/$skill ~/.claude/skills/
+done
+rm -rf /tmp/arcads-skills
 ```
 
-Or use the one-liner above — it clones to `~/.agents/skills/arcads` which Claude Code also picks up automatically.
+Or use the one-liner above — it copies skill folders to `~/.agents/skills/` which Claude Code also picks up automatically.
 
 ---
 
@@ -91,6 +101,10 @@ curl -fsSL https://raw.githubusercontent.com/arcads-ai/skills/main/install.sh | 
 | Skill | Description |
 |---|---|
 | [winning-ad](./winning-ad/SKILL.md) | Step-by-step workflow for creating high-converting ads: discovery → image → video → enhancements |
+| [spy-competitor-ads](./spy-competitor-ads/SKILL.md) | Find and download the top 5 highest-performing competitor video ads from the Meta Ad Library |
+| [hook-identifier](./hook-identifier/SKILL.md) | Analyze a video ad to identify its hook — returns the end timestamp and a reproduction-ready timeline |
+| [hook-cloner](./hook-cloner/SKILL.md) | Clone a competitor's hook for your brand using Seedance 2.0, preserving structure while swapping identity |
+| [winning-hook-pipeline](./winning-hook-pipeline/SKILL.md) | End-to-end pipeline: spy on competitors → identify the best hook → clone it for your brand |
 
 ---
 
