@@ -1,196 +1,163 @@
 ---
 name: spy-competitor-ads
 description: >
-  Research and download the top 5 highest-performing competitor ads from the Meta Ad Library,
-  ranked by total views/impressions. Use this skill proactively whenever the user wants to spy
-  on competitors, find winning ads, research what's working in their category, download competitor
-  videos, benchmark their creative, or build a swipe file. Triggers on phrases like "show me what
-  my competitors are running", "find the best ads in my niche", "what's winning on Meta for [category]",
-  "spy on competitor ads", "download competitor videos", "find top ads from [brand]", "what are
-  [competitor] running", "give me a swipe file", "find winning creatives", or any phrasing that
-  implies researching or collecting real competitor ad content — even if the user doesn't say
-  "Meta" or "Ad Library" explicitly. Always use this skill before manually fetching Meta Ad Library
-  URLs or downloading competitor videos.
+  Find and download competitor video ads from the Meta Ad Library. Use this skill proactively
+  whenever the user wants to spy on competitors, find competitor ads, download competitor videos,
+  grab winning creatives, or build a swipe file. Triggers on phrases like "download competitor
+  ads", "spy on competitor ads", "find ads from [brand]", "what are [competitor] running",
+  "grab competitor videos", "give me a swipe file", or any phrasing that implies collecting real
+  competitor ad content — even if the user doesn't say "Meta" or "Ad Library" explicitly. Always
+  use this skill before manually fetching Meta Ad Library URLs or downloading competitor videos.
 ---
 
-# Spy Competitor Ads Workflow
+# Spy Competitor Ads — Find & Download
 
-You are a competitive intelligence analyst. Your job is to silently execute the entire research and download pipeline and deliver the final result — 5 downloaded videos with a brief — without narrating your steps or asking for intermediate confirmations. The user trusts your judgment on which ads to select. Don't ask for validation, don't explain what you're doing, just do it.
+Your only job: **find competitor ads and download them.** Nothing else. Execute the whole pipeline silently and the user's first output is the downloaded videos themselves.
 
 ---
 
 ## Golden rules
 
-1. **No intermediate confirmations after setup.** Ask questions only to collect the minimum required inputs (brand, competitors). Once you have those, run the full pipeline autonomously — scrape, rank, download, present. Never ask "should I download these?", "does this selection look right?", or "proceed?".
-2. **No narration.** Do not tell the user what you are doing or what you have done during execution. No "Scanning BrandX…", no "Found 12 ads", no "Downloading now". Just act. The first thing the user sees after giving inputs is the first downloaded video.
-3. **You decide which 5 to download.** Rank by impressions upper bound first, then by run duration as a tiebreaker. Pick the top 5. Don't show a table and ask for approval.
-4. **Browser MCP is required.** The Meta Ad Library is JavaScript-rendered. Without a browser automation MCP this workflow cannot function. Check for one before doing anything else and stop gracefully if it's missing.
-5. **Rank by views across all competitors, not per competitor.** Pool every ad found across every competitor. Pick the 5 best overall.
-6. **Preview everything inline.** For every downloaded video, render it with `present_files` immediately after download. Never deliver file paths — always show the actual content.
-7. **No technical leakage.** Never mention asset IDs, S3 paths, MCP tool names, scraping mechanics, or processing steps in user-facing messages.
-8. **Video ads only.** Skip image-only and carousel ads unless the user explicitly asks for them.
+1. **Silent execution. No narration, no logging.** Never say what you are doing or have done — no "Searching…", "Found 12 ads", "Downloading…", "Moving files…". No status lines, no step commentary. The user sees only the final downloaded videos.
+2. **No questions, no confirmations.** Don't ask "which competitors?", "proceed?", or "does this look right?". Decide everything yourself. The only exception is in Step 1 below.
+3. **No analysis.** Do NOT analyze the videos, describe hooks, summarize messaging, rank by "why it's winning", or write a competitive brief. Do not profile the competitors. Just find and download.
+4. **Auto-find competitors when not given.** If the user names competitors, use them. If not, find them yourself and proceed immediately — no list to confirm.
+5. **No technical leakage.** Never mention CDN URLs, asset IDs, MCP tool names, scraping mechanics, or file-move steps.
+6. **Video ads only.** Skip image and carousel ads.
+7. **Browser MCP is required.** The Meta Ad Library is JavaScript-rendered. If no browser automation MCP is connected, that is the one thing you stop and report (Step 2).
 
 ---
 
-## Step 1 — Brand & product discovery
+## Step 1 — Resolve the brand & competitors (fast, ≤1 question)
 
-Ask only what you don't already know. One question at a time, conversationally.
+- **Competitors named?** → use them. Skip straight to Step 2.
+- **Not named?** → infer the user's brand from the request and conversation context. Then find 2–3 direct competitors yourself with a quick `WebSearch`/`WebFetch` (brands selling a similar product to a similar audience that plausibly run paid social). Do **not** present or confirm the list — just use them.
+- **Brand genuinely unknown and not inferable?** → ask exactly one short question: "What's your brand or product?" Nothing else. Once answered, proceed autonomously.
 
-You need:
-- **Product / brand name**
-- **Product category** (skincare, supplement, SaaS, fashion, food, app…)
-- **Target customer** (who is it for)
-
-Only proceed once you can describe the product category and audience in one sentence.
+Default count: top **5** ads pooled across all competitors. If the user specified a number ("2 ads", "one each"), honor it exactly.
 
 ---
 
-## Step 2 — Competitor list
+## Step 2 — Browser MCP check
 
-Use `mcp_Question`:
+Confirm a browser automation MCP is connected (e.g. `mcp__Claude_in_Chrome__*`, Playwright, Chrome DevTools, Puppeteer). Verify with `list_connected_browsers` or equivalent.
 
-> "Which competitors do you want to research?"
+- **Connected** → proceed silently.
+- **Not connected** → stop and say only:
+  > "I need a browser automation plugin (like the Claude-in-Chrome extension or Playwright) connected to read the Meta Ad Library. Connect one and I'll grab the ads."
 
-Options:
-- I have a list (free text → they name them, comma-separated)
-- Find them for me (Recommended)
-- Both — I have some, find the rest
-
-### If they want you to find competitors
-
-Use `mcp_Webfetch` or a search subagent to identify the top 5 direct competitors — brands selling a similar product to a similar audience. Verify each has an active web presence and is plausibly running paid social ads.
-
-Present the 5 names with one-line justifications and ask with `mcp_Question`:
-- Use all of these
-- Remove one / add one (free text)
-
-Do not proceed until you have a confirmed competitor list (2–6 names). This is the **last question** you ask before executing autonomously.
+Do not try to work around this with `WebFetch`.
 
 ---
 
-## Step 3 — Browser MCP check
+## Step 3 — Scrape + download in one pass per competitor
 
-Verify a browser automation MCP is available. Look for anything like `mcp_Playwright_*`, `mcp_Chrome_*`, `mcp_Browser_*`, `mcp_Puppeteer_*`.
+Run competitors **sequentially** (parallel sessions trigger bot detection).
 
-- **If yes**: proceed directly to Step 4 without telling the user.
-- **If no**: stop and tell the user:
-  > "I need a browser automation plugin (like Playwright or Chrome DevTools MCP) to read the Meta Ad Library. Could you install one and let me know when it's ready?"
-
-  Do not attempt to work around this with `mcp_Webfetch`.
-
----
-
-## Step 4 — Scrape each competitor's ad library
-
-For each competitor, build the Meta Ad Library URL:
+For each competitor, build the URL:
 
 ```
 https://www.facebook.com/ads/library/?active_status=active&ad_type=all&country=ALL&is_targeted_country=false&media_type=video&search_type=keyword_unordered&sort_data[direction]=desc&sort_data[mode]=total_impressions&q=<COMPETITOR_URL_ENCODED>
 ```
 
-Adjust `country=ALL` to the user's primary market if they mentioned one.
+Use the user's primary market for `country=` if they mentioned one, else `ALL`.
 
-### For each competitor — scrape silently
+Then, for speed, do everything in as few calls as possible — **navigate, wait briefly, then one JavaScript call** that scrolls, extracts, filters, and downloads:
 
-Using the browser MCP:
-1. Open the URL and wait for ad cards to render.
-2. Scroll down at least once to trigger lazy-loading.
-3. For each ad card, extract:
-   - **Impression range** (e.g., "50K–200K") — use the upper bound as `impressions_upper`
-   - **Ad start date** — "Started running on [date]"
-   - **Video URL** — `<video src>` or `data-video-url` on the play button
-   - **Headline / ad copy** if visible
-4. Click into the top 3–5 cards to retrieve fuller impression data when the card view is truncated.
+### Critical technical facts (learned the hard way)
 
-Build an internal list per competitor:
+- **`curl` does NOT work.** The browser extension masks Meta CDN video URLs (they carry cookie/query-string/JWT tokens), so the raw `src` is never returned to you and an external `curl` has no valid URL. **Download in-page instead**: `fetch(src)` → `blob()` → temporary `<a download>` → `click()`. This saves to the browser's Downloads folder. You never need to see the URL.
+- **Keyword pollution is common.** A search for a brand often returns an unrelated company with the same name (e.g. "Creatify" the AI tool vs. "Creatify.mx" a sticker shop). Inspect each card's advertiser name / domain / copy and keep only cards that match the real competitor. Drop the rest.
+- **Impressions are hidden** for commercial (non-political) ads. Don't rank by impressions. Instead prefer the **most-recurring creative** (many near-identical live copies = highest spend = proven winner), then most recent. Pick the top N by that heuristic.
+
+### One-shot extract + download script (adapt per competitor)
+
+```js
+(async () => {
+  // 1. trigger lazy-load
+  window.scrollTo(0, document.body.scrollHeight);
+  await new Promise(r => setTimeout(r, 2500));
+  window.scrollTo(0, document.body.scrollHeight);
+  await new Promise(r => setTimeout(r, 2000));
+
+  // 2. collect videos + their card text
+  const vids = Array.from(document.querySelectorAll('video'))
+    .filter(v => (v.src || v.currentSrc || '').startsWith('http'));
+  const cardText = (v) => {
+    let el = v;
+    for (let i = 0; i < 12 && el; i++) {
+      el = el.parentElement;
+      if (el && el.innerText && el.innerText.length > 100 && el.innerText.length < 2000) return el.innerText;
+    }
+    return '';
+  };
+
+  // 3. keep only cards matching the REAL competitor (edit the regex per brand),
+  //    drop same-name pollution, and de-dupe so recurring creatives count once.
+  const BRAND = /creatify\.?ai|@creatify/i;        // <-- set per competitor
+  const kept = [];
+  const seen = new Set();
+  for (const v of vids) {
+    const t = cardText(v);
+    if (!BRAND.test(t)) continue;
+    const key = t.slice(0, 80);
+    kept.push({ v, t, dup: seen.has(key) });
+    seen.add(key);
+  }
+
+  // 4. download up to N (recurring creatives appear first → already spend-weighted)
+  const N = 5;                                      // <-- set to requested count
+  const picks = kept.slice(0, N);
+  const results = [];
+  for (let i = 0; i < picks.length; i++) {
+    const url = picks[i].v.src || picks[i].v.currentSrc;
+    try {
+      const b = await (await fetch(url)).blob();
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(b);
+      a.download = `spy-ad-${i + 1}-COMPETITOR.mp4`;   // <-- set competitor slug
+      document.body.appendChild(a); a.click(); a.remove();
+      results.push({ i: i + 1, bytes: b.size });
+    } catch (e) { results.push({ i: i + 1, error: String(e) }); }
+  }
+  return results;
+})()
 ```
-competitor, impressions_upper, start_date, video_url, headline
-```
 
-Run competitors **sequentially** — parallel browser sessions may trigger bot detection.
+If a fetch fails (expired/geo-blocked), it's skipped automatically — just move to the next card. No mention to the user.
 
 ---
 
-## Step 5 — Rank and select the top 5 (autonomous, no confirmation)
+## Step 4 — Collect files and deliver
 
-Pool all ads from all competitors. Rank by:
-1. `impressions_upper` descending (primary)
-2. `start_date` ascending — older = more durable (tiebreaker)
-
-Take the top 5. You decide. Do not show a table, do not ask for approval.
-
----
-
-## Step 6 — Download and present
-
-For each of the 5 ads, use the Bash tool to run a `curl` command to download the video to `/tmp/`:
+After downloading, move the files out of the browser's Downloads folder to `/tmp/` with the Bash tool, in one command:
 
 ```bash
-curl -sL "<video_url>" -o /tmp/spy-ad-<rank>-<competitor>.mp4
+cd ~/Downloads && mv -f spy-ad-*.mp4 /tmp/ && ls -la /tmp/spy-ad-*.mp4
 ```
 
-Do not use any other download mechanism — always go through the Bash `curl` command. Name files clearly: `spy-ad-1-brandx.mp4`, `spy-ad-2-brandy.mp4`, etc.
+Then deliver — **only the files, no analysis, no commentary, no brief**. Present each video inline if a preview tool is available; otherwise list them as clickable file links:
 
-After **each** download, immediately render inline with `present_files` paired with a one-line label:
+> - [spy-ad-1-creatify-ai.mp4](/tmp/spy-ad-1-creatify-ai.mp4)
+> - [spy-ad-2-captions.mp4](/tmp/spy-ad-2-captions.mp4)
 
-> **#1 — BrandX** | ~200K impressions | Running since Nov 2024 | "headline text"
-
-Show them one by one as they complete — don't batch.
-
-If a video URL fails (geo-blocked, expired CDN), silently skip to the next ranked candidate from the pool. No need to explain the failure to the user.
-
----
-
-## Step 7 — Deliver the swipe file summary
-
-After all 5 videos are shown, deliver a clean competitive brief — no preamble, straight to the content:
-
----
-**#1 — [Competitor]** | ~[impressions] | Running [X months]
-Hook style: [e.g., "Problem/solution UGC", "Before/after", "Social proof"]
-Key message: [one line]
-Why it's winning: [1–2 sentences]
-
-**#2 — [Competitor]** …
-
-*(repeat for all 5)*
-
----
-**Patterns across top performers:**
-- [2–3 observations: format, hook type, CTA, pacing, emotional angle]
-
-**What this means for your brand:**
-- [1–2 actionable recommendations]
-
----
-
-Then offer next steps with `mcp_Question`:
-- Clone one of these for my brand (→ clone-ad skill)
-- Create a new ad inspired by these patterns (→ winning-ad skill)
-- Download more ads from a specific competitor
-- Done
+That's the end. Do not append observations, patterns, recommendations, or next-step offers.
 
 ---
 
 ## Edge cases
 
-### No video ads found for a competitor
-Skip silently and continue with remaining competitors. If no competitors yield any video ads at all, then tell the user and ask if they want to try different search terms.
-
-### Impression data not visible on a card
-Use ad run duration as the sole ranking criterion for that ad. No need to mention it to the user.
-
-### Video URL expired or geo-blocked
-Skip to the next ranked ad. No mention to the user.
+- **No video ads found for a competitor** → skip silently, continue with the rest. If *no* competitor yields any video, say so briefly and stop.
+- **Only same-name/unrelated ads found** → treat as "no ads found" for that competitor; skip silently.
+- **Browser not connected** → the only blocking case; see Step 2.
 
 ---
 
-## Quick reference — tools used
+## Quick reference
 
 | Tool | Where |
 |---|---|
-| `mcp_Webfetch` / search subagent | Step 2 — competitor research |
-| Browser MCP (Playwright/Chrome) | Steps 3–6 — scrape Meta Ad Library, extract video URLs |
-| `curl` | Step 6 — download videos to `/tmp/` |
-| `present_files` | Step 6 — render each video inline |
-| `mcp_Question` | Steps 1–2 only — brand discovery and competitor confirmation |
+| `WebSearch` / `WebFetch` | Step 1 — auto-find competitors (only if not named) |
+| Browser MCP (`mcp__Claude_in_Chrome__*` / Playwright) | Steps 2–3 — open Ad Library, run extract+download JS |
+| `javascript_tool` (in-page `fetch`→blob→download) | Step 3 — the ONLY reliable download path; curl does not work |
+| `Bash` (`mv`) | Step 4 — move files from Downloads to `/tmp/` |
