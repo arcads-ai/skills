@@ -45,6 +45,20 @@
       ]
     },
     {
+      "name": "static-ad-cloner",
+      "description": "Clone a static (image) ad for the user's own brand. Takes a reference static ad image and at least one real product image plus a short description, then produces a brand-new static ad using arcads_generate_image — preserving the original's composition, hierarchy, lighting, palette, typography, and copy structure while swapping every brand-specific element for the user's product. Use when a user wants to recreate a static/image ad for their product.",
+      "url": "https://raw.githubusercontent.com/arcads-ai/skills/main/static-ad-cloner/SKILL.md",
+      "tags": [
+        "static",
+        "image",
+        "clone",
+        "ad-creative",
+        "nano-banana",
+        "arcads",
+        "brand"
+      ]
+    },
+    {
       "name": "winning-hook-pipeline",
       "description": "End-to-end pipeline that chains three skills in sequence: spy-competitor-ads → hook-identifier → hook-cloner. Finds the top-performing competitor ads, identifies the best hook, and clones it for the user's brand in one continuous flow. Use when the user wants to do all three steps together.",
       "url": "https://raw.githubusercontent.com/arcads-ai/skills/main/winning-hook-pipeline/SKILL.md",
