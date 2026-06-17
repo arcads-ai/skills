@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "arcads": {
+      "type": "http",
+      "url": "https://mcp.arcads.ai"
+    }
+  }
+}

@@ -32,6 +32,8 @@ After install, the 4 skills are available namespaced under `arcads`:
 - `arcads:clone-static-ad`
 - `arcads:media-router`
 
+The plugin also bundles the **Arcads MCP server** (`https://mcp.arcads.ai`), which exposes the `arcads_*` tools (`arcads_generate_image`, `arcads_generate_video_seedance_20`, `arcads_analyze_media`, `arcads_get_upload_url`, `arcads_get_asset`, `arcads_watch_asset`, etc.) that the skills call. It uses OAuth — after install, run `/mcp` once and follow the browser flow to authenticate. Tokens are stored securely and refreshed automatically.
+
 Update later with `/plugin marketplace update arcads` then `/plugin update arcads@arcads`.
 
 To test a local checkout before publishing:
