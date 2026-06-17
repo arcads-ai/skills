@@ -2,6 +2,8 @@
 
 Reusable AI skills for creating high-converting ads with [Arcads](https://arcads.ai).
 
+This repository is published as a **Claude Code plugin** *and* as a multi-tool skill bundle (opencode, Cursor, Codex). Pick whichever path fits your environment.
+
 ## One-liner install (all platforms)
 
 ```bash
@@ -13,6 +15,32 @@ This auto-detects your installed tools and installs skills in the right place fo
 ---
 
 ## Platform-specific instructions
+
+### Claude Code (plugin)
+
+This repo is a Claude Code plugin marketplace. Install from inside Claude Code:
+
+```shell
+/plugin marketplace add arcads-ai/skills
+/plugin install arcads@arcads
+```
+
+After install, the 4 skills are available namespaced under `arcads`:
+
+- `arcads:spy-competitor-ads`
+- `arcads:clone-hook`
+- `arcads:clone-static-ad`
+- `arcads:media-router`
+
+Update later with `/plugin marketplace update arcads` then `/plugin update arcads@arcads`.
+
+To test a local checkout before publishing:
+
+```bash
+claude --plugin-dir /path/to/skills
+```
+
+---
 
 ### opencode
 
@@ -33,8 +61,8 @@ Add to `~/.config/opencode/opencode.json`:
 ```bash
 git clone --depth 1 https://github.com/arcads-ai/skills.git /tmp/arcads-skills
 mkdir -p ~/.agents/skills
-for skill in arcads-winning-ad arcads-spy-competitor-ads arcads-clone-hook arcads-clone-static-ad arcads-media-router; do
-  cp -r /tmp/arcads-skills/$skill ~/.agents/skills/
+for skill in spy-competitor-ads clone-hook clone-static-ad media-router; do
+  cp -r /tmp/arcads-skills/skills/$skill ~/.agents/skills/
 done
 rm -rf /tmp/arcads-skills
 ```
@@ -55,20 +83,20 @@ Restart opencode after any config change.
 
 ---
 
-### Claude Code
+### Claude Code (standalone skills, no plugin)
 
-Skills placed in `~/.claude/skills/` are auto-loaded.
+If you don't want to use the plugin manifest, skills placed in `~/.claude/skills/` are also auto-loaded.
 
 ```bash
 git clone --depth 1 https://github.com/arcads-ai/skills.git /tmp/arcads-skills
 mkdir -p ~/.claude/skills
-for skill in arcads-winning-ad arcads-spy-competitor-ads arcads-clone-hook arcads-clone-static-ad arcads-media-router; do
-  cp -r /tmp/arcads-skills/$skill ~/.claude/skills/
+for skill in spy-competitor-ads clone-hook clone-static-ad media-router; do
+  cp -r /tmp/arcads-skills/skills/$skill ~/.claude/skills/
 done
 rm -rf /tmp/arcads-skills
 ```
 
-Or use the one-liner above — it copies skill folders to `~/.agents/skills/` which Claude Code also picks up automatically.
+Or use the one-liner installer at the top — it copies skill folders to `~/.agents/skills/` which Claude Code also picks up automatically.
 
 ---
 
@@ -99,13 +127,12 @@ curl -fsSL https://raw.githubusercontent.com/arcads-ai/skills/main/install.sh | 
 ## Available skills
 
 
-| Skill                                                                   | Description                                                                                               |
-| ----------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| [arcads-winning-ad](./arcads-winning-ad/SKILL.md)                       | Step-by-step workflow for creating high-converting ads: discovery → image → video → enhancements          |
-| [arcads-spy-competitor-ads](./arcads-spy-competitor-ads/SKILL.md)       | Find and download top competitor ads from the Meta Ad Library — videos by default, statics on request     |
-| [arcads-clone-hook](./arcads-clone-hook/SKILL.md)                       | Identify a video ad's hook AND clone it for your brand in one flow (auto-sources a video if none given)   |
-| [arcads-clone-static-ad](./arcads-clone-static-ad/SKILL.md)           | Clone a static (image) ad for your brand using arcads_generate_image, preserving layout/copy structure    |
-| [arcads-media-router](./arcads-media-router/SKILL.md)                   | Smart router: dynamically picks the best Arcads MCP tool for any generate/edit/repurpose image or video   |
+| Skill                                                            | Description                                                                                               |
+| ---------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| [spy-competitor-ads](./skills/spy-competitor-ads/SKILL.md)       | Find and download top competitor ads from the Meta Ad Library — videos by default, statics on request     |
+| [clone-hook](./skills/clone-hook/SKILL.md)                       | Identify a video ad's hook AND clone it for your brand in one flow (auto-sources a video if none given)   |
+| [clone-static-ad](./skills/clone-static-ad/SKILL.md)             | Clone a static (image) ad for your brand using arcads_generate_image, preserving layout/copy structure    |
+| [media-router](./skills/media-router/SKILL.md)                   | Smart router: dynamically picks the best Arcads MCP tool for any generate/edit/repurpose image or video   |
 
 
 ---

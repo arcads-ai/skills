@@ -1,5 +1,5 @@
 ---
-name: arcads-clone-hook
+name: clone-hook
 description: >
   End-to-end skill that identifies the hook of a video ad and clones it for the user's
   own brand in one continuous flow. Analyzes the source video with arcads_analyze_media
@@ -9,7 +9,7 @@ description: >
   in parallel per run to maximize the odds of a winner — preserving the original's
   visual structure, emotional beat, pacing, and on-screen text while swapping all
   brand-specific content with the user's identity. Optionally takes a reference video —
-  if none is provided, auto-runs arcads-spy-competitor-ads (video mode) to source one.
+  if none is provided, auto-runs arcads:spy-competitor-ads (video mode) to source one.
   Never invents brand or product details, and never imagines product visuals; always asks
   for the real logo and product assets first. Use this skill whenever the user wants to
   "find the hook and clone it", "recreate this video ad for my brand", "clone this hook
@@ -60,15 +60,15 @@ The source video is **optional**. There are three paths:
 
 **A. The user provided a video.** Local file path, S3 path, or already pasted/uploaded. Use it directly. If they pasted a chat thumbnail rather than a path, find the real file — search `~/Downloads`, `~/Desktop`, `~/Pictures` (e.g. `find ~/Downloads ~/Desktop -maxdepth 1 -type f \( -iname "*.mp4" -o -iname "*.mov" -o -iname "*.webm" \) -mmin -15`) and confirm by reading. If you can't find it, ask for the exact path.
 
-**B. The user did NOT provide a video → source one automatically.** Trigger the `arcads-spy-competitor-ads` skill in **video mode** (its default) to source candidate references from the Meta Ad Library:
+**B. The user did NOT provide a video → source one automatically.** Trigger the `arcads:spy-competitor-ads` skill in **video mode** (its default) to source candidate references from the Meta Ad Library:
 
 1. If the user named competitors, pass them. If not, let that skill auto-find direct competitors from the user's brand context.
 2. Once it returns downloaded video files, pick the **top result** by default. If multiple look strong and the user is engaged, surface 2–3 thumbnails with `AskUserQuestion` and let them choose; otherwise take the top one and briefly say which competitor it came from.
 3. Treat the chosen file as the source video for the rest of the flow.
 
-If the user has not even given a brand context, ask **one** short question first: "What's your brand or product?" — then trigger `arcads-spy-competitor-ads` with that.
+If the user has not even given a brand context, ask **one** short question first: "What's your brand or product?" — then trigger `arcads:spy-competitor-ads` with that.
 
-**C. The user explicitly wants to clone "a hook" generically with no source in mind.** Treat as B — auto-source via `arcads-spy-competitor-ads`. Don't invent a reference; the whole point is to clone an existing hook.
+**C. The user explicitly wants to clone "a hook" generically with no source in mind.** Treat as B — auto-source via `arcads:spy-competitor-ads`. Don't invent a reference; the whole point is to clone an existing hook.
 
 ---
 
@@ -358,8 +358,8 @@ Checklist:
 
 ## Edge cases
 
-- **No source video yet**: do **not** stop. Trigger `arcads-spy-competitor-ads` (video mode) to source one (Step 1B). Only ask the user for help if there's no brand/product context to drive the search.
-- **arcads-spy-competitor-ads returns no videos** for the chosen competitors: try one more set if the user gave brand context, otherwise stop and ask for a reference video.
+- **No source video yet**: do **not** stop. Trigger `arcads:spy-competitor-ads` (video mode) to source one (Step 1B). Only ask the user for help if there's no brand/product context to drive the search.
+- **arcads:spy-competitor-ads returns no videos** for the chosen competitors: try one more set if the user gave brand context, otherwise stop and ask for a reference video.
 - **Very short video (under 5s)**: the entire video is likely the hook. State this clearly and provide the full timeline (since it's all hook).
 - **No clear hook-to-pitch transition**: state that the hook boundary is ambiguous, give your best estimate, explain why.
 - **Multiple hooks / A/B test structure**: note this and describe each variant; ask which to clone.
@@ -373,7 +373,7 @@ Checklist:
 
 | Tool | Where |
 |---|---|
-| `arcads-spy-competitor-ads` skill (video mode) | Step 1B — auto-source a reference video when the user didn't provide one |
+| `arcads:spy-competitor-ads` skill (video mode) | Step 1B — auto-source a reference video when the user didn't provide one |
 | `arcads_get_upload_url` + `curl -X PUT` | Steps 2 + 4 — upload the source video and the brand assets |
 | `arcads_analyze_media` | Step 2 — extract the reproduction-ready hook breakdown |
 | `arcads_get_asset` | Steps 2 + 5 — poll for analysis and generation results |

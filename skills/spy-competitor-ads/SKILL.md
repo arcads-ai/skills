@@ -1,5 +1,5 @@
 ---
-name: arcads-spy-competitor-ads
+name: spy-competitor-ads
 description: >
   Find and download competitor ads from the Meta Ad Library. Supports three modes —
   VIDEO only (`media_type=video`), IMAGE / static only (`media_type=image`), or BOTH
@@ -16,8 +16,8 @@ description: >
   say "Meta" or "Ad Library" explicitly. Always use this skill before manually fetching
   Meta Ad Library URLs or downloading competitor ads. When run standalone (not as a
   sub-step of another skill), ends with a multi-select form letting the user pick which
-  downloaded ads to clone — selected videos are then handed to arcads-clone-hook and
-  selected images to arcads-clone-static-ad, one chained run per pick.
+  downloaded ads to clone — selected videos are then handed to arcads:clone-hook and
+  selected images to arcads:clone-static-ad, one chained run per pick.
 ---
 
 # Spy Competitor Ads — Find & Download
@@ -382,10 +382,10 @@ Do not append observations, patterns, recommendations, or written analysis. The 
 
 ## Step 5 — Offer to clone (standalone runs only)
 
-This step **only fires when arcads-spy-competitor-ads was invoked directly by the user as the end goal**, not when it was triggered as a sub-step by another skill. Detect the situation before running it:
+This step **only fires when arcads:spy-competitor-ads was invoked directly by the user as the end goal**, not when it was triggered as a sub-step by another skill. Detect the situation before running it:
 
 **Skip Step 5 (do NOT show the form) when any of these is true:**
-- The current invocation was triggered by another skill — most commonly `arcads-clone-hook` (Step 1B auto-source) or `arcads-clone-static-ad` (Step 1B auto-source). Those skills will consume the downloaded files themselves; offering to clone again would loop.
+- The current invocation was triggered by another skill — most commonly `arcads:clone-hook` (Step 1B auto-source) or `arcads:clone-static-ad` (Step 1B auto-source). Those skills will consume the downloaded files themselves; offering to clone again would loop.
 - The original user request was explicitly research-only — "just download competitor ads", "build me a swipe file", "save these for me", "I want to look at them".
 - Zero creatives were delivered in Step 4.
 
@@ -406,8 +406,8 @@ The `custom` default option ("Type your own answer") lets the user say "all of t
 
 Walk the user's selection in the order they were picked. For each chosen file:
 
-1. **Video file (`.mp4`)** → load and run the `arcads-clone-hook` skill, passing the local `/tmp/spy-ad-*.mp4` path as the source video (skipping its Step 1B auto-source, since you already have a video). `arcads-clone-hook` will analyze the hook, then (after its own confirmation prompt) clone it for the user's brand.
-2. **Image file (`.jpg` / `.png`)** → load and run the `arcads-clone-static-ad` skill, passing the local `/tmp/spy-ad-*.{jpg,png}` path as the reference static ad (skipping its Step 1B auto-source, since you already have an image). `arcads-clone-static-ad` will analyze the layout and clone it for the user's brand.
+1. **Video file (`.mp4`)** → load and run the `arcads:clone-hook` skill, passing the local `/tmp/spy-ad-*.mp4` path as the source video (skipping its Step 1B auto-source, since you already have a video). `arcads:clone-hook` will analyze the hook, then (after its own confirmation prompt) clone it for the user's brand.
+2. **Image file (`.jpg` / `.png`)** → load and run the `arcads:clone-static-ad` skill, passing the local `/tmp/spy-ad-*.{jpg,png}` path as the reference static ad (skipping its Step 1B auto-source, since you already have an image). `arcads:clone-static-ad` will analyze the layout and clone it for the user's brand.
 
 Run the chained skills **sequentially** (not in parallel) — each one needs the user's attention for brand/asset questions, and parallel runs would collide. After each chained skill finishes, move to the next selected file.
 
@@ -415,7 +415,7 @@ If the user picks just one creative, hand off immediately without re-confirming.
 
 ### Carry brand context forward
 
-The downstream skills (`arcads-clone-hook`, `arcads-clone-static-ad`) will ask for the user's brand, product, and assets. If the user already gave that information during Step 1a or in the original request, pass it forward — don't make them re-answer.
+The downstream skills (`arcads:clone-hook`, `arcads:clone-static-ad`) will ask for the user's brand, product, and assets. If the user already gave that information during Step 1a or in the original request, pass it forward — don't make them re-answer.
 
 ---
 
@@ -428,9 +428,9 @@ The downstream skills (`arcads-clone-hook`, `arcads-clone-static-ad`) will ask f
 - **User dismisses the mode form** (Step 1b) or doesn't pick a mode → stop and say "I need to know which kind of ads to grab — video, image, or both." Do not guess.
 - **User deselects every competitor** in the Step 1c multi-select → ask once for a manual list ("Which competitors should I look at instead?"). If still empty, stop.
 - **User picks "none" in the Step 5 clone form** → stop cleanly. No commentary, no follow-up.
-- **User picks one creative in Step 5** → hand off to the matching cloner skill (`arcads-clone-hook` for video, `arcads-clone-static-ad` for image) without an extra confirmation.
+- **User picks one creative in Step 5** → hand off to the matching cloner skill (`arcads:clone-hook` for video, `arcads:clone-static-ad` for image) without an extra confirmation.
 - **Step 5 chain — one of the cloner skills fails or is cancelled by the user** → stop the chain (do not run the remaining selections silently). Surface what happened in one line and let the user restart the chain if they want.
-- **Invoked from inside another skill** (e.g. `arcads-clone-hook` auto-source) → skip Step 5 entirely. The calling skill owns the next step.
+- **Invoked from inside another skill** (e.g. `arcads:clone-hook` auto-source) → skip Step 5 entirely. The calling skill owns the next step.
 
 ---
 
@@ -443,5 +443,5 @@ The downstream skills (`arcads-clone-hook`, `arcads-clone-static-ad`) will ask f
 | Browser MCP (`mcp__Claude_in_Chrome__*` / Playwright) | Steps 2–3 — open Ad Library, run extract+download JS |
 | `javascript_tool` (in-page `fetch`→blob→download) | Step 3 — the ONLY reliable download path; curl does not work. Pick the extractor that matches the mode: `<video>` for VIDEO, `<img>` for IMAGE, combined for BOTH. |
 | `Bash` (`mv`) | Step 4 — move files from Downloads to `/tmp/` (`.mp4` for VIDEO, `.jpg`/`.png` for IMAGE, both for BOTH) |
-| `arcads-clone-hook` skill | Step 5 — chained per selected video, passing the local `/tmp/spy-ad-*.mp4` path |
-| `arcads-clone-static-ad` skill | Step 5 — chained per selected image, passing the local `/tmp/spy-ad-*.{jpg,png}` path |
+| `arcads:clone-hook` skill | Step 5 — chained per selected video, passing the local `/tmp/spy-ad-*.mp4` path |
+| `arcads:clone-static-ad` skill | Step 5 — chained per selected image, passing the local `/tmp/spy-ad-*.{jpg,png}` path |

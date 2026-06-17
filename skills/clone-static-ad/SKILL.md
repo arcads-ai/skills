@@ -1,8 +1,8 @@
 ---
-name: arcads-clone-static-ad
+name: clone-static-ad
 description: >
   Clone a static (image) ad for the user's own brand. Optionally takes a reference static
-  ad as an image — if none is provided, automatically runs the arcads-spy-competitor-ads skill
+  ad as an image — if none is provided, automatically runs the arcads:spy-competitor-ads skill
   in static mode to source one from the Meta Ad Library — and produces a brand-new static
   ad using arcads_generate_image — generating THREE variants in parallel per run to
   maximize the odds of a winner — preserving the original's composition, layout, visual
@@ -48,16 +48,16 @@ The reference static ad is **optional**. There are three paths:
 Either a local image path, an S3 path, or an image they've already pasted/uploaded in the conversation. Use it directly. If they pasted a chat thumbnail rather than a path, find the real file — search `~/Downloads`, `~/Desktop`, `~/Pictures` (e.g. `find ~/Downloads ~/Desktop -maxdepth 1 -type f \( -iname "*.png" -o -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.webp" \) -mmin -15`) and confirm it's the right image by reading it. If you can't find it, ask for the exact path.
 
 **B. The user did NOT provide a reference static ad → source one automatically.**
-Do not stop and ask "which static ad?". Instead, run the **`arcads-spy-competitor-ads` skill in static mode** to source candidate references from the Meta Ad Library, then pick one to clone:
+Do not stop and ask "which static ad?". Instead, run the **`arcads:spy-competitor-ads` skill in static mode** to source candidate references from the Meta Ad Library, then pick one to clone:
 
-1. Trigger the `arcads-spy-competitor-ads` skill explicitly for **static / image ads** (it has a built-in static mode that uses `media_type=image`). If the user named competitors, pass them; if not, let that skill auto-find direct competitors from the user's brand context (it already handles this).
+1. Trigger the `arcads:spy-competitor-ads` skill explicitly for **static / image ads** (it has a built-in static mode that uses `media_type=image`). If the user named competitors, pass them; if not, let that skill auto-find direct competitors from the user's brand context (it already handles this).
 2. Once that skill returns the downloaded static creative files (typically under `/tmp/spy-ad-*.jpg` / `.png`), pick the **top result** as the reference static ad by default. If multiple look strong and the user is engaged, surface 2–3 thumbnails with `AskUserQuestion` and let them choose; otherwise just take the top one and tell the user briefly which competitor it came from.
 3. Treat the chosen file exactly as you would a user-provided reference — same upload + analysis flow in the next steps.
 
-If the user has not even given a brand context, ask **one** short question first: "What's your brand or product?" — then trigger arcads-spy-competitor-ads in static mode with that.
+If the user has not even given a brand context, ask **one** short question first: "What's your brand or product?" — then trigger arcads:spy-competitor-ads in static mode with that.
 
 **C. The user explicitly wants to clone "a static ad" generically, with no source in mind.**
-Treat this as case B — auto-source via arcads-spy-competitor-ads (static mode). Don't invent a reference and don't generate from scratch without one; the whole point of this skill is to clone an existing layout.
+Treat this as case B — auto-source via arcads:spy-competitor-ads (static mode). Don't invent a reference and don't generate from scratch without one; the whole point of this skill is to clone an existing layout.
 
 ---
 
@@ -277,8 +277,8 @@ Checklist:
 
 ## Edge cases
 
-- **No reference static ad yet**: do **not** stop. Trigger the `arcads-spy-competitor-ads` skill in static mode to source one automatically (see Step 1B). Only ask the user for help if there's no brand/product context to drive the search.
-- **arcads-spy-competitor-ads returns no static ads** for the chosen competitors: try one more set of competitors if the user gave brand context to work with, otherwise stop and ask the user to share a reference static ad directly.
+- **No reference static ad yet**: do **not** stop. Trigger the `arcads:spy-competitor-ads` skill in static mode to source one automatically (see Step 1B). Only ask the user for help if there's no brand/product context to drive the search.
+- **arcads:spy-competitor-ads returns no static ads** for the chosen competitors: try one more set of competitors if the user gave brand context to work with, otherwise stop and ask the user to share a reference static ad directly.
 - **No product yet**: stop and ask for at least one product image and a one-line description. Do not proceed without both.
 - **No brand name / logo provided**: keep a neutral product-name placeholder, omit the wordmark zone (or leave it blank for a post overlay), and flag both clearly to the user. Never invent a brand name.
 - **Reference ad is very text-heavy** (e.g. a copy-only ad): treat each text block as its own zone and reproduce hierarchy faithfully; the product image may be small or absent.
@@ -291,7 +291,7 @@ Checklist:
 
 | Tool | Where |
 |---|---|
-| `arcads-spy-competitor-ads` skill (static mode) | Step 1B — auto-source a reference static ad when the user didn't provide one |
+| `arcads:spy-competitor-ads` skill (static mode) | Step 1B — auto-source a reference static ad when the user didn't provide one |
 | `arcads_get_upload_url` + `curl -X PUT` | Step 2 — upload the reference ad and user product/logo |
 | `arcads_analyze_media` | Step 3 — extract the layout-faithful description from the reference ad |
 | `arcads_get_asset` | Step 3 + Step 5 — poll for analysis and generation results |

@@ -51,7 +51,7 @@ import json, sys
 data = json.load(sys.stdin)
 for s in data.get('skills', []):
     print(s['name'])
-" 2>/dev/null || echo -e "arcads-winning-ad\narcads-spy-competitor-ads\narcads-clone-hook\narcads-clone-static-ad\narcads-media-router"
+" 2>/dev/null || echo -e "spy-competitor-ads\nclone-hook\nclone-static-ad\nmedia-router"
 }
 
 list_skills_from_local() {
@@ -62,7 +62,7 @@ import json, sys
 data = json.load(open('$manifest'))
 for s in data.get('skills', []):
     print(s['name'])
-" 2>/dev/null || echo -e "arcads-winning-ad\narcads-spy-competitor-ads\narcads-clone-hook\narcads-clone-static-ad\narcads-media-router"
+" 2>/dev/null || echo -e "spy-competitor-ads\nclone-hook\nclone-static-ad\nmedia-router"
 }
 
 clone_to_tmp() {
@@ -84,7 +84,7 @@ copy_skills_from_tmp() {
 
   while IFS= read -r skill; do
     [ -z "$skill" ] && continue
-    local src="$tmp_dir/repo/$skill"
+    local src="$tmp_dir/repo/skills/$skill"
     local dst="$install_dir/$skill"
     if [ -d "$src" ]; then
       rm -rf "$dst"
@@ -100,7 +100,7 @@ copy_skills_from_tmp() {
 
 fetch_skill_md() {
   local skill_name="$1"
-  local url="$RAW_BASE/$skill_name/SKILL.md"
+  local url="$RAW_BASE/skills/$skill_name/SKILL.md"
   if command -v curl &>/dev/null; then
     curl -fsSL "$url"
   else

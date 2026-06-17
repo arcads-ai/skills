@@ -1,0 +1,23 @@
+{
+  "name": "arcads",
+  "description": "Reusable AI skills for creating high-converting ads with Arcads — spy on competitors, clone winning hooks and static ads, and route any image/video generation to the right Arcads MCP tool.",
+  "version": "1.0.0",
+  "author": {
+    "name": "Arcads",
+    "url": "https://arcads.ai"
+  },
+  "homepage": "https://github.com/arcads-ai/skills",
+  "repository": "https://github.com/arcads-ai/skills",
+  "license": "MIT",
+  "keywords": [
+    "arcads",
+    "ads",
+    "ad-creative",
+    "video",
+    "image",
+    "meta-ad-library",
+    "competitor-research",
+    "hook",
+    "seedance"
+  ]
+}
