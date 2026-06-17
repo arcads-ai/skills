@@ -1,23 +1,18 @@
 ---
 name: spy-competitor-ads
 description: >
-  Find and download competitor ads from the Meta Ad Library. Supports three modes —
-  VIDEO only (`media_type=video`), IMAGE / static only (`media_type=image`), or BOTH
-  image and video together (`media_type=all`). There is NO default: if the user did not
-  explicitly say which media type they want, ask once with a select form before scraping.
-  Also confirms the competitor shortlist with a multi-select form before running the
-  scrape, so the user can deselect any auto-found brand that doesn't fit. Use this skill
-  proactively whenever the user wants to spy on competitors, find competitor ads, download
-  competitor videos or images, grab winning creatives, or build a swipe file. Triggers on
-  phrases like "download competitor ads", "spy on competitor ads", "find ads from [brand]",
-  "what are [competitor] running", "grab competitor videos", "find static ads from [brand]",
-  "give me all competitor ads (video and image)", "build me a full swipe file", or any
-  phrasing that implies collecting real competitor ad content — even if the user doesn't
-  say "Meta" or "Ad Library" explicitly. Always use this skill before manually fetching
-  Meta Ad Library URLs or downloading competitor ads. When run standalone (not as a
-  sub-step of another skill), ends with a multi-select form letting the user pick which
-  downloaded ads to clone — selected videos are then handed to arcads:clone-hook and
-  selected images to arcads:clone-static-ad, one chained run per pick.
+  Find and download competitor ads from the Meta Ad Library. Three modes — VIDEO only
+  (`media_type=video`), IMAGE only (`media_type=image`), or BOTH (`media_type=all`); if
+  the user didn't say which, ask once before scraping. Also confirms the competitor
+  shortlist with a multi-select before scraping. Use proactively when the user wants to
+  spy on competitors, find competitor ads, download competitor videos or images, grab
+  winning creatives, or build a swipe file. Triggers on "download competitor ads", "spy
+  on competitor ads", "find ads from [brand]", "what are [competitor] running", "grab
+  competitor videos", "find static ads from [brand]", "give me all competitor ads (video
+  and image)", "build me a full swipe file", or any phrasing implying collecting real
+  competitor ad content — even without saying "Meta" or "Ad Library". When run
+  standalone, ends with a multi-select to pick which ads to clone — videos handed to
+  arcads:clone-hook, images to arcads:clone-static-ad, one chained run per pick.
 ---
 
 # Spy Competitor Ads — Find & Download

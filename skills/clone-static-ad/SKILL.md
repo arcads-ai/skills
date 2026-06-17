@@ -1,24 +1,18 @@
 ---
 name: clone-static-ad
 description: >
-  Clone a static (image) ad for the user's own brand. Optionally takes a reference static
-  ad as an image — if none is provided, automatically runs the arcads:spy-competitor-ads skill
-  in static mode to source one from the Meta Ad Library — and produces a brand-new static
-  ad using arcads_generate_image — generating THREE variants in parallel per run to
-  maximize the odds of a winner — preserving the original's composition, layout, visual
-  hierarchy, lighting, color palette, typography, and copy structure while replacing every
-  brand-specific element with the user's product. Always asks for at least one real
-  product image and a short product description if the user hasn't supplied a product.
-  Never invents brand or product details, and never imagines product visuals from scratch.
-  Use this skill whenever the user wants to "clone this static ad", "recreate this image
-  ad for my brand", "make me this ad but for my product", "use this static creative for
-  [brand]", "redo this print/poster/IG image ad", "adapt this static for my product",
-  "make me a static ad like my competitors", "clone a winning static ad for my brand", or
-  any phrasing implying rebuilding (or sourcing-then-rebuilding) a static ad for a
-  different product. Also trigger when the user drops a static image ad and says "now
-  make it mine", "swap the brand", or "I want one like this". Always trigger before
-  manually calling arcads_generate_image when the goal is static-ad recreation for a new
-  brand.
+  Clone a static (image) ad for the user's brand. If no reference is given, auto-runs
+  arcads:spy-competitor-ads in static mode to source one from the Meta Ad Library, then
+  produces a brand-new static ad via arcads_generate_image — three variants in parallel
+  — preserving composition, layout, hierarchy, lighting, palette, typography, and copy
+  while swapping every brand-specific element for the user's product. Always asks for at
+  least one real product image and a short description if none is supplied. Never
+  invents brand or product details. Use whenever the user wants to "clone this static
+  ad", "recreate this image ad for my brand", "make me this ad but for my product",
+  "use this static creative for [brand]", "redo this print/poster/IG image ad", "adapt
+  this static for my product", "make me a static ad like my competitors", "clone a
+  winning static ad for my brand", or any phrasing implying rebuilding a static ad. Also
+  trigger on "now make it mine", "swap the brand", "I want one like this".
 ---
 
 # Static Ad Cloner

@@ -1,22 +1,18 @@
 ---
 name: media-router
 description: >
-  Smart router for any "generate" or "edit/modify/repurpose" request involving an image
-  or a video. Dynamically introspects the connected MCP servers, locates the Arcads MCP,
-  reads its live tool list with current descriptions, picks the single best-matching tool
-  for the user's intent, and runs it end-to-end (upload assets if needed, call the tool,
-  poll for completion, fetch the result, deliver). Use this skill proactively whenever the
-  user asks to "generate an image", "make a picture of…", "generate a video", "create a
-  video of…", "edit this image", "remove the background", "extend this video", "add
-  captions", "add a voice-over", "translate this ad", "upscale this", "change the
-  background", "repurpose this video", "make a version with…", "add a logo", "swap the
-  product", or any phrasing implying media creation, modification, repurposing, captioning,
-  voice work, translation, or enhancement — whether the input is text-only, an existing
-  image, or an existing video. Always trigger before manually picking an arcads_* tool
-  yourself. Defers to more specialized skills (arcads:clone-hook,
-  arcads:clone-static-ad, arcads:spy-competitor-ads) when the request clearly matches
-  one of them; otherwise this is the right entry point. Do not trigger for purely analytical / read-only queries
-  that aren't about producing or modifying a media asset.
+  Smart router for any "generate" or "edit/modify/repurpose" request on an image or
+  video. Introspects connected MCP servers, locates the Arcads MCP, reads its live tool
+  list, picks the best-matching tool for the user's intent, and runs it end-to-end
+  (upload, call, poll, deliver). Use proactively when the user asks to "generate an
+  image", "make a picture of…", "generate a video", "create a video of…", "edit this
+  image", "remove the background", "extend this video", "add captions", "add a
+  voice-over", "translate this ad", "upscale this", "change the background", "repurpose
+  this video", "make a version with…", "add a logo", "swap the product", or any phrasing
+  implying media creation, modification, repurposing, captioning, voice work,
+  translation, or enhancement — text-only, image, or video input. Defers to specialized
+  skills (arcads:clone-hook, arcads:clone-static-ad, arcads:spy-competitor-ads) when
+  they match. Do not trigger for read-only/analytical queries.
 ---
 
 # Arcads Media Router

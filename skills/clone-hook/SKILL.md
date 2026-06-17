@@ -1,25 +1,18 @@
 ---
 name: clone-hook
 description: >
-  End-to-end skill that identifies the hook of a video ad and clones it for the user's
-  own brand in one continuous flow. Analyzes the source video with arcads_analyze_media
-  to extract a reproduction-ready, beat-by-beat timeline (hook end timestamp, layout map,
-  casting sheet, verbatim script, captions, Seedance 2.0 prompts), then optionally
-  rebuilds the hook with arcads_generate_video_seedance_20 — generating TWO variants
-  in parallel per run to maximize the odds of a winner — preserving the original's
-  visual structure, emotional beat, pacing, and on-screen text while swapping all
-  brand-specific content with the user's identity. Optionally takes a reference video —
-  if none is provided, auto-runs arcads:spy-competitor-ads (video mode) to source one.
-  Never invents brand or product details, and never imagines product visuals; always asks
-  for the real logo and product assets first. Use this skill whenever the user wants to
-  "find the hook and clone it", "recreate this video ad for my brand", "clone this hook
-  for my product", "make me a winning ad from this", "use this opening for [brand]",
-  "I want the same hook but for my product", "give me the Seedance prompts to rebuild
-  this", "analyze this ad and remake it for me", or any phrasing implying hook analysis,
-  hook reproduction, or hook adaptation to a new brand. Also trigger when the user just
-  says "clone this hook", "make it mine", or "now recreate it". Always trigger before
-  manually calling arcads_analyze_media or arcads_generate_video_seedance_20 when the
-  goal is hook understanding, reproduction, or recreation.
+  Identifies the hook of a video ad and clones it for the user's brand. Analyzes the
+  source with arcads_analyze_media (hook end timestamp, layout, casting, script,
+  captions, Seedance 2.0 prompts), then rebuilds with arcads_generate_video_seedance_20
+  — two variants in parallel — preserving structure, beat, pacing, and on-screen text
+  while swapping in the user's brand. If no video is given, auto-runs
+  arcads:spy-competitor-ads. Never invents brand or product details; always asks for
+  the real logo and product assets first. Use whenever the user wants to "find the hook
+  and clone it", "recreate this video ad for my brand", "clone this hook for my
+  product", "make me a winning ad from this", "use this opening for [brand]", "give me
+  the Seedance prompts to rebuild this", "analyze this ad and remake it for me", or any
+  phrasing implying hook analysis, reproduction, or adaptation. Also trigger on "clone
+  this hook", "make it mine", "now recreate it".
 ---
 
 # Arcads Clone Hook
