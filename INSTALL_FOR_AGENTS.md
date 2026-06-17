@@ -33,7 +33,7 @@ Add to `~/.config/opencode/opencode.json`:
 ```bash
 git clone --depth 1 https://github.com/arcads-ai/skills.git /tmp/arcads-skills
 mkdir -p ~/.agents/skills
-for skill in arcads-winning-ad arcads-spy-competitor-ads arcads-clone-hook arcads-static-ad-cloner arcads-media-router; do
+for skill in arcads-winning-ad arcads-spy-competitor-ads arcads-clone-hook arcads-clone-static-ad arcads-media-router; do
   cp -r /tmp/arcads-skills/$skill ~/.agents/skills/
 done
 rm -rf /tmp/arcads-skills
@@ -62,7 +62,7 @@ Skills placed in `~/.claude/skills/` are auto-loaded.
 ```bash
 git clone --depth 1 https://github.com/arcads-ai/skills.git /tmp/arcads-skills
 mkdir -p ~/.claude/skills
-for skill in arcads-winning-ad arcads-spy-competitor-ads arcads-clone-hook arcads-static-ad-cloner arcads-media-router; do
+for skill in arcads-winning-ad arcads-spy-competitor-ads arcads-clone-hook arcads-clone-static-ad arcads-media-router; do
   cp -r /tmp/arcads-skills/$skill ~/.claude/skills/
 done
 rm -rf /tmp/arcads-skills
@@ -104,7 +104,7 @@ curl -fsSL https://raw.githubusercontent.com/arcads-ai/skills/main/install.sh | 
 | [arcads-winning-ad](./arcads-winning-ad/SKILL.md)                       | Step-by-step workflow for creating high-converting ads: discovery → image → video → enhancements          |
 | [arcads-spy-competitor-ads](./arcads-spy-competitor-ads/SKILL.md)       | Find and download top competitor ads from the Meta Ad Library — videos by default, statics on request     |
 | [arcads-clone-hook](./arcads-clone-hook/SKILL.md)                       | Identify a video ad's hook AND clone it for your brand in one flow (auto-sources a video if none given)   |
-| [arcads-static-ad-cloner](./arcads-static-ad-cloner/SKILL.md)           | Clone a static (image) ad for your brand using arcads_generate_image, preserving layout/copy structure    |
+| [arcads-clone-static-ad](./arcads-clone-static-ad/SKILL.md)           | Clone a static (image) ad for your brand using arcads_generate_image, preserving layout/copy structure    |
 | [arcads-media-router](./arcads-media-router/SKILL.md)                   | Smart router: dynamically picks the best Arcads MCP tool for any generate/edit/repurpose image or video   |
 
 

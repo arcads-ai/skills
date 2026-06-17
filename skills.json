@@ -20,7 +20,7 @@
     },
     {
       "name": "arcads-clone-hook",
-      "description": "End-to-end skill that identifies the hook of a video ad and clones it for the user's brand in one continuous flow. Analyzes the source video with arcads_analyze_media (returns hook end timestamp, beat-by-beat timeline, casting sheet, verbatim script, captions, Seedance 2.0 prompts), then optionally rebuilds it with arcads_generate_video_seedance_20, preserving structure and emotional beat while swapping in the user's brand identity. Optionally auto-sources a video via arcads-spy-competitor-ads when none is provided. Use when a user wants to find and/or recreate the hook of a video ad.",
+      "description": "End-to-end skill that identifies the hook of a video ad and clones it for the user's brand in one continuous flow. Analyzes the source video with arcads_analyze_media (returns hook end timestamp, beat-by-beat timeline, casting sheet, verbatim script, captions, Seedance 2.0 prompts), then optionally rebuilds it with arcads_generate_video_seedance_20 — generating TWO variants in parallel per run to maximize the odds of a winner — preserving structure and emotional beat while swapping in the user's brand identity. Optionally auto-sources a video via arcads-spy-competitor-ads when none is provided. Use when a user wants to find and/or recreate the hook of a video ad.",
       "url": "https://raw.githubusercontent.com/arcads-ai/skills/main/arcads-clone-hook/SKILL.md",
       "tags": [
         "hook",
@@ -35,9 +35,9 @@
       ]
     },
     {
-      "name": "arcads-static-ad-cloner",
-      "description": "Clone a static (image) ad for the user's own brand. Optionally takes a reference static ad — if none is provided, auto-runs arcads-spy-competitor-ads in static mode to source one — plus at least one real product image and a short description, then produces a brand-new static ad using arcads_generate_image, preserving the original's composition, hierarchy, lighting, palette, typography, and copy structure while swapping every brand-specific element for the user's product. Use when a user wants to recreate a static/image ad for their product.",
-      "url": "https://raw.githubusercontent.com/arcads-ai/skills/main/arcads-static-ad-cloner/SKILL.md",
+      "name": "arcads-clone-static-ad",
+      "description": "Clone a static (image) ad for the user's own brand. Optionally takes a reference static ad — if none is provided, auto-runs arcads-spy-competitor-ads in static mode to source one — plus at least one real product image and a short description, then produces a brand-new static ad using arcads_generate_image — generating THREE variants in parallel per run to maximize the odds of a winner — preserving the original's composition, hierarchy, lighting, palette, typography, and copy structure while swapping every brand-specific element for the user's product. Use when a user wants to recreate a static/image ad for their product.",
+      "url": "https://raw.githubusercontent.com/arcads-ai/skills/main/arcads-clone-static-ad/SKILL.md",
       "tags": [
         "static",
         "image",
@@ -50,7 +50,7 @@
     },
     {
       "name": "arcads-media-router",
-      "description": "Smart router for any generate/edit/repurpose request on an image or video. Dynamically introspects the connected Arcads MCP, reads its live tool catalog, picks the best-matching tool for the user's intent, and runs it end-to-end (upload assets if needed, call, poll, deliver). Defers to specialized skills (arcads-clone-hook, arcads-static-ad-cloner, etc.) when they fit. Use as the default entry point for any media generation or modification request not covered by a specialized skill.",
+      "description": "Smart router for any generate/edit/repurpose request on an image or video. Dynamically introspects the connected Arcads MCP, reads its live tool catalog, picks the best-matching tool for the user's intent, and runs it end-to-end (upload assets if needed, call, poll, deliver). Defers to specialized skills (arcads-clone-hook, arcads-clone-static-ad, etc.) when they fit. Use as the default entry point for any media generation or modification request not covered by a specialized skill.",
       "url": "https://raw.githubusercontent.com/arcads-ai/skills/main/arcads-media-router/SKILL.md",
       "tags": [
         "router",

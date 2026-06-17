@@ -1,57 +1,94 @@
 ---
 name: arcads-spy-competitor-ads
 description: >
-  Find and download competitor ads from the Meta Ad Library. Supports three modes:
-  (1) VIDEO ads only (default — `media_type=video`), (2) IMAGE / static ads only
-  (`media_type=image`, triggered by "static ads", "image ads", "posters", "still
-  creatives", "photo ads"), or (3) BOTH image and video together (`media_type=all`,
-  triggered by "both", "video and image", "all formats", "everything", "any media",
-  "videos and statics"). Use this skill proactively whenever the user wants to spy on
-  competitors, find competitor ads, download competitor videos or images, grab winning
-  creatives, or build a swipe file. Triggers on phrases like "download competitor ads",
-  "spy on competitor ads", "find ads from [brand]", "what are [competitor] running",
-  "grab competitor videos", "find static ads from [brand]", "give me all competitor ads
-  (video and image)", "build me a full swipe file", or any phrasing that implies
-  collecting real competitor ad content — even if the user doesn't say "Meta" or "Ad
-  Library" explicitly. Always use this skill before manually fetching Meta Ad Library
-  URLs or downloading competitor ads.
+  Find and download competitor ads from the Meta Ad Library. Supports three modes —
+  VIDEO only (`media_type=video`), IMAGE / static only (`media_type=image`), or BOTH
+  image and video together (`media_type=all`). There is NO default: if the user did not
+  explicitly say which media type they want, ask once with a select form before scraping.
+  Also confirms the competitor shortlist with a multi-select form before running the
+  scrape, so the user can deselect any auto-found brand that doesn't fit. Use this skill
+  proactively whenever the user wants to spy on competitors, find competitor ads, download
+  competitor videos or images, grab winning creatives, or build a swipe file. Triggers on
+  phrases like "download competitor ads", "spy on competitor ads", "find ads from [brand]",
+  "what are [competitor] running", "grab competitor videos", "find static ads from [brand]",
+  "give me all competitor ads (video and image)", "build me a full swipe file", or any
+  phrasing that implies collecting real competitor ad content — even if the user doesn't
+  say "Meta" or "Ad Library" explicitly. Always use this skill before manually fetching
+  Meta Ad Library URLs or downloading competitor ads. When run standalone (not as a
+  sub-step of another skill), ends with a multi-select form letting the user pick which
+  downloaded ads to clone — selected videos are then handed to arcads-clone-hook and
+  selected images to arcads-clone-static-ad, one chained run per pick.
 ---
 
 # Spy Competitor Ads — Find & Download
 
 Your only job: **find competitor ads and download them.** Nothing else. Execute the whole pipeline silently and the user's first output is the downloaded creatives themselves.
 
-**Media type — decide once, up front. Pick exactly ONE of three modes:**
+**Media type — pick exactly ONE of three modes. NO default.**
 
-| Mode | Trigger | `media_type` param | Extractor | Downloads |
+| Mode | Explicit trigger phrases | `media_type` param | Extractor | Downloads |
 |---|---|---|---|---|
-| **VIDEO** *(default)* | Anything not matching the other two modes | `video` | `<video>` only | `.mp4` |
+| **VIDEO** | "video ads", "competitor videos", "video creatives", "their videos" | `video` | `<video>` only | `.mp4` |
 | **IMAGE** | "static ads", "image ads", "photo ads", "still creatives", "posters", "image creatives" | `image` | `<img>` only (min 200px) | `.jpg` / `.png` |
 | **BOTH** | "both", "video and image", "videos and statics", "all formats", "everything", "any media", "full swipe file" | `all` | `<video>` + `<img>` in one pass | `.mp4` + `.jpg` / `.png` |
 
-The chosen mode flows through the whole skill: URL → in-page extractor → file extensions → delivery list. Pick once at the start and stick with it for every competitor in the run.
+If — and only if — the user's request **does not contain an explicit trigger for one of the three modes**, ask with `AskUserQuestion` before doing anything else (see Step 1b). Do NOT silently default to video. The chosen mode then flows through the whole skill: URL → in-page extractor → file extensions → delivery list. Pick once and stick with it for every competitor in the run.
 
 ---
 
 ## Golden rules
 
-1. **Silent execution. No narration, no logging.** Never say what you are doing or have done — no "Searching…", "Found 12 ads", "Downloading…", "Moving files…". No status lines, no step commentary. The user sees only the final downloaded videos.
-2. **No questions, no confirmations.** Don't ask "which competitors?", "proceed?", or "does this look right?". Decide everything yourself. The only exception is in Step 1 below.
-3. **No analysis.** Do NOT analyze the videos, describe hooks, summarize messaging, rank by "why it's winning", or write a competitive brief. Do not profile the competitors. Just find and download.
-4. **Auto-find competitors when not given.** If the user names competitors, use them. If not, find them yourself and proceed immediately — no list to confirm.
+1. **Silent execution. No narration, no logging.** Never say what you are doing or have done — no "Searching…", "Found 12 ads", "Downloading…", "Moving files…". No status lines, no step commentary. The user sees only the final downloaded creatives.
+2. **Up to three forms, and only these three.** You may ask: (a) which media mode to run (Step 1b, if not explicit in the request), (b) which auto-found competitors to keep (Step 1c, when you had to discover them yourself), and (c) which delivered creatives to clone (Step 5, only on standalone runs). All use `AskUserQuestion`. Beyond these three, no other questions, confirmations, or "proceed?" check-ins. Between forms, go fully autonomous.
+3. **No analysis.** Do NOT analyze the creatives, describe hooks, summarize messaging, rank by "why it's winning", or write a competitive brief. Do not profile the competitors. Just find and download.
+4. **Auto-find competitors when not given — then confirm.** If the user names competitors, use them as-is, no confirmation. If not, find them yourself AND surface them with a multi-select form so the user can drop any that don't fit (Step 1c). Never silently scrape against a list the user never saw.
 5. **No technical leakage.** Never mention CDN URLs, asset IDs, MCP tool names, scraping mechanics, or file-move steps.
 6. **One mode per run** (VIDEO, IMAGE, or BOTH — see the mode table above). Skip carousels in every mode.
 7. **Browser MCP is required.** The Meta Ad Library is JavaScript-rendered. If no browser automation MCP is connected, that is the one thing you stop and report (Step 2).
 
 ---
 
-## Step 1 — Resolve the brand & competitors (fast, ≤1 question)
+## Step 1 — Resolve the brand, mode, and competitors
 
-- **Competitors named?** → use them. Skip straight to Step 2.
-- **Not named?** → infer the user's brand from the request and conversation context. Then find 2–3 direct competitors yourself with a quick `WebSearch`/`WebFetch` (brands selling a similar product to a similar audience that plausibly run paid social). Do **not** present or confirm the list — just use them.
-- **Brand genuinely unknown and not inferable?** → ask exactly one short question: "What's your brand or product?" Nothing else. Once answered, proceed autonomously.
+You run up to three short setup interactions here, **in this exact order**, and only the ones whose answer isn't already in the request. Once these are settled, go autonomous.
 
-Default count: top **5** ads pooled across all competitors. If the user specified a number ("2 ads", "one each"), honor it exactly.
+### 1a — Brand
+
+- **Brand named or obvious from context?** → use it.
+- **Not inferable?** → ask exactly one short question: *"What's your brand or product?"* Nothing else.
+
+### 1b — Media mode (NO default — ask if missing)
+
+Read the user's request. If it contains an explicit phrase from the mode-trigger table (VIDEO / IMAGE / BOTH), use that and skip this step.
+
+If the request is silent on media type, ask with `AskUserQuestion`:
+
+> **Question**: "Which kind of competitor ads should I grab?"
+> **Header**: "Media type"
+> **Options**:
+> - **Video ads** — "Playable video creatives only (.mp4)"
+> - **Static / image ads** — "Static image creatives only (.jpg / .png)"
+> - **Both video and image** — "Everything they're running, in one pass (Recommended)"
+
+Wait for the answer before doing anything else. **Do not default to video.** Do not scrape without an explicit choice.
+
+### 1c — Competitor shortlist
+
+- **Competitors named by the user?** → use them as-is. Skip this confirmation entirely.
+- **Not named?** → find 3–5 direct competitors yourself with a quick `WebSearch`/`WebFetch` (brands selling a similar product to a similar audience that plausibly run paid social). Then confirm with `AskUserQuestion`:
+
+  > **Question**: "Found these competitors for [user's brand]. Pick the ones to spy on — keep the relevant ones, drop the rest."
+  > **Header**: "Competitors"
+  > **Multiple**: `true`
+  > **Options**: one per discovered competitor, with a one-line label like "BrandX — meal kits", "BrandY — recipe app", etc. Each `description` explains why it was matched.
+
+  The form's `custom` option lets the user type any competitor you missed. Run the scrape against the final selection (kept + added). If the user selects zero, ask once for a manual list, then stop.
+
+  Never silently scrape against an auto-found list the user never saw.
+
+### Count
+
+Default count: top **5** ads pooled across the final competitor selection. If the user specified a number ("2 ads", "one each"), honor it exactly.
 
 ---
 
@@ -99,7 +136,7 @@ Then, for speed, do everything in as few calls as possible — **navigate, wait 
 - **Impressions are hidden** for commercial (non-political) ads. Don't rank by impressions. Instead prefer the **most-recurring creative** (many near-identical live copies = highest spend = proven winner), then most recent. Pick the top N by that heuristic.
 - **Selector + extension depend on the mode.** VIDEO mode uses `<video>` + `.mp4`. IMAGE mode uses the card's main `<img>` + `.jpg`/`.png`. BOTH mode collects `<video>` and `<img>` in the same pass (with the same min-size filter for images). In every mode, filter out tiny avatars/icons (≤ ~200px on either side) so you only keep real ad creatives.
 
-### One-shot extract + download script — VIDEO mode (default)
+### One-shot extract + download script — VIDEO mode
 
 ```js
 (async () => {
@@ -339,7 +376,46 @@ Then deliver — **only the files, no analysis, no commentary, no brief**. Prese
 > - [spy-ad-2-creatify-ai.jpg](/tmp/spy-ad-2-creatify-ai.jpg)
 > - [spy-ad-3-creatify-ai.mp4](/tmp/spy-ad-3-creatify-ai.mp4)
 
-That's the end. Do not append observations, patterns, recommendations, or next-step offers.
+Do not append observations, patterns, recommendations, or written analysis. The only thing that may follow this delivery is the Step 5 "clone which?" form — and only when this skill ran standalone.
+
+---
+
+## Step 5 — Offer to clone (standalone runs only)
+
+This step **only fires when arcads-spy-competitor-ads was invoked directly by the user as the end goal**, not when it was triggered as a sub-step by another skill. Detect the situation before running it:
+
+**Skip Step 5 (do NOT show the form) when any of these is true:**
+- The current invocation was triggered by another skill — most commonly `arcads-clone-hook` (Step 1B auto-source) or `arcads-clone-static-ad` (Step 1B auto-source). Those skills will consume the downloaded files themselves; offering to clone again would loop.
+- The original user request was explicitly research-only — "just download competitor ads", "build me a swipe file", "save these for me", "I want to look at them".
+- Zero creatives were delivered in Step 4.
+
+**Run Step 5 (show the form) otherwise**, including when the user's request was ambiguous-but-actionable like "spy on competitors and let me work from there", "find competitor ads I can use as inspiration", or a bare "find competitor ads from [brand]". When in doubt, run it — declining is one click for the user.
+
+### The form
+
+Surface every delivered creative as a separate option in a single `AskUserQuestion` call with `multiple: true`:
+
+> **Question**: "Want me to clone any of these for your brand? Pick the ones to recreate — I'll rebuild each for you."
+> **Header**: "Clone which?"
+> **Multiple**: `true`
+> **Options**: one per delivered file, in the same order they were listed in Step 4. Each option's `label` is the short filename without the leading slug (e.g. "Ad #1 — BrandX (video)" or "Ad #3 — BrandY (image)"). Each option's `description` is one short cue from the card text if you have it (e.g. "Talking-head selfie, 22s"), or just the file type if you don't.
+
+The `custom` default option ("Type your own answer") lets the user say "all of them", "none — I'm done", or a custom note.
+
+### Routing each selection
+
+Walk the user's selection in the order they were picked. For each chosen file:
+
+1. **Video file (`.mp4`)** → load and run the `arcads-clone-hook` skill, passing the local `/tmp/spy-ad-*.mp4` path as the source video (skipping its Step 1B auto-source, since you already have a video). `arcads-clone-hook` will analyze the hook, then (after its own confirmation prompt) clone it for the user's brand.
+2. **Image file (`.jpg` / `.png`)** → load and run the `arcads-clone-static-ad` skill, passing the local `/tmp/spy-ad-*.{jpg,png}` path as the reference static ad (skipping its Step 1B auto-source, since you already have an image). `arcads-clone-static-ad` will analyze the layout and clone it for the user's brand.
+
+Run the chained skills **sequentially** (not in parallel) — each one needs the user's attention for brand/asset questions, and parallel runs would collide. After each chained skill finishes, move to the next selected file.
+
+If the user picks just one creative, hand off immediately without re-confirming. If they pick "none", stop cleanly — no chaining, no further commentary. If they pick "all of them", chain through every delivered file in order.
+
+### Carry brand context forward
+
+The downstream skills (`arcads-clone-hook`, `arcads-clone-static-ad`) will ask for the user's brand, product, and assets. If the user already gave that information during Step 1a or in the original request, pass it forward — don't make them re-answer.
 
 ---
 
@@ -349,6 +425,12 @@ That's the end. Do not append observations, patterns, recommendations, or next-s
 - **BOTH mode but only one media type returns** (e.g. competitor runs only videos): deliver what you got and say briefly "BrandX is only running videos right now — no statics in their library." Do not pad with the missing format.
 - **Only same-name/unrelated ads found** → treat as "no ads found" for that competitor; skip silently.
 - **Browser not connected** → the only blocking case; see Step 2.
+- **User dismisses the mode form** (Step 1b) or doesn't pick a mode → stop and say "I need to know which kind of ads to grab — video, image, or both." Do not guess.
+- **User deselects every competitor** in the Step 1c multi-select → ask once for a manual list ("Which competitors should I look at instead?"). If still empty, stop.
+- **User picks "none" in the Step 5 clone form** → stop cleanly. No commentary, no follow-up.
+- **User picks one creative in Step 5** → hand off to the matching cloner skill (`arcads-clone-hook` for video, `arcads-clone-static-ad` for image) without an extra confirmation.
+- **Step 5 chain — one of the cloner skills fails or is cancelled by the user** → stop the chain (do not run the remaining selections silently). Surface what happened in one line and let the user restart the chain if they want.
+- **Invoked from inside another skill** (e.g. `arcads-clone-hook` auto-source) → skip Step 5 entirely. The calling skill owns the next step.
 
 ---
 
@@ -356,7 +438,10 @@ That's the end. Do not append observations, patterns, recommendations, or next-s
 
 | Tool | Where |
 |---|---|
-| `WebSearch` / `WebFetch` | Step 1 — auto-find competitors (only if not named) |
+| `AskUserQuestion` | Step 1b — pick media mode (when not explicit). Step 1c — multi-select competitor shortlist (when auto-discovered). Step 5 — multi-select "clone which?" (standalone runs only). |
+| `WebSearch` / `WebFetch` | Step 1c — auto-find competitors (only if not named) |
 | Browser MCP (`mcp__Claude_in_Chrome__*` / Playwright) | Steps 2–3 — open Ad Library, run extract+download JS |
 | `javascript_tool` (in-page `fetch`→blob→download) | Step 3 — the ONLY reliable download path; curl does not work. Pick the extractor that matches the mode: `<video>` for VIDEO, `<img>` for IMAGE, combined for BOTH. |
 | `Bash` (`mv`) | Step 4 — move files from Downloads to `/tmp/` (`.mp4` for VIDEO, `.jpg`/`.png` for IMAGE, both for BOTH) |
+| `arcads-clone-hook` skill | Step 5 — chained per selected video, passing the local `/tmp/spy-ad-*.mp4` path |
+| `arcads-clone-static-ad` skill | Step 5 — chained per selected image, passing the local `/tmp/spy-ad-*.{jpg,png}` path |

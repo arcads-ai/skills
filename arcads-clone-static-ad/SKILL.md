@@ -1,10 +1,11 @@
 ---
-name: arcads-static-ad-cloner
+name: arcads-clone-static-ad
 description: >
   Clone a static (image) ad for the user's own brand. Optionally takes a reference static
   ad as an image — if none is provided, automatically runs the arcads-spy-competitor-ads skill
   in static mode to source one from the Meta Ad Library — and produces a brand-new static
-  ad using arcads_generate_image, preserving the original's composition, layout, visual
+  ad using arcads_generate_image — generating THREE variants in parallel per run to
+  maximize the odds of a winner — preserving the original's composition, layout, visual
   hierarchy, lighting, color palette, typography, and copy structure while replacing every
   brand-specific element with the user's product. Always asks for at least one real
   product image and a short product description if the user hasn't supplied a product.
@@ -208,44 +209,54 @@ Bake these into **every** prompt — they catch the most common failure modes:
 
 A good prompt therefore opens with a short **CONSTRAINTS** block (lock product to reference + only-what's-described + spell out text), then the layout-faithful description in the same order as the source's composition map, with each text zone quoted verbatim.
 
-### 5c — Generate with arcads_generate_image
+### 5c — Generate three variants with arcads_generate_image
 
-Call `arcads_generate_image` with:
-- **prompt**: the full layout-faithful prompt from 5a (with the 5b constraints block)
-- **referenceImages**: the uploaded `filePath`s in the order they're referenced in the prompt — typically the **user's product image** as reference image 1, then the **logo** if applicable, then any additional product angles or secondary images. Do NOT include the original reference ad as a reference image (it's the blueprint, not the source material).
+**Always generate THREE variants in parallel.** Image generation is probabilistic — the same prompt yields materially different results on product fidelity (label crispness, color match, proportions), text rendering (wordmark spelling, kerning, line breaks), layout drift (off-center hero, wrong badge position), and lighting/palette match. Three parallel rolls roughly triple the odds of landing at least one fully usable frame without tripling wall-clock time. This is not optional; never ship a single roll. Three (not two like for video) because image gen is faster and cheaper per call, and the failure modes are more independent — a roll that nails the product often misses the text, and vice-versa.
+
+Make **three `arcads_generate_image` calls in parallel** (same tool call batch), all with the same parameters:
+- **prompt**: the full layout-faithful prompt from 5a (with the 5b constraints block) — identical across all three rolls
+- **referenceImages**: the same uploaded `filePath`s in the same order across all three rolls — typically the **user's product image** as reference image 1, then the **logo** if applicable, then any additional product angles or secondary images. Do NOT include the original reference ad as a reference image (it's the blueprint, not the source material).
 - **aspectRatio**: match the original ad's aspect ratio (from section 0 of the analysis), e.g. `"1:1"`, `"4:5"`, `"9:16"`, `"16:9"`.
-- **productId**: if the call returns `PRODUCT_SELECTION_REQUIRED` with a list of products, ask the user which one to use, then pass its `id`.
+- **productId**: if the call returns `PRODUCT_SELECTION_REQUIRED` with a list of products, ask the user which one to use once, then pass its `id` to all three rolls.
 
-Poll with `arcads_get_asset` until `status === "generated"` (or `"failed"`), then `arcads_watch_asset` to get the signed URL.
+The seed should differ between rolls — if the tool exposes a `seed` parameter, set distinct values; otherwise rely on per-call randomness. Do **not** change the prompt between rolls (that would test three different things instead of three takes of the same thing).
 
-Download and open it for the user:
+Poll all three assets with `arcads_get_asset` until each reports `status === "generated"` (or `"failed"`). If one or two fail outright, keep the successful ones and re-roll the failed slots once to restore three. Never proceed with fewer than two successful frames. Then call `arcads_watch_asset` on each to get the signed URLs.
+
+Download and open all three variants side-by-side:
 ```
-curl -sL "<url>" -o ~/Downloads/static-ad-clone.png && open ~/Downloads/static-ad-clone.png
+curl -sL "<url-1>" -o ~/Downloads/static-ad-clone-v1.png && \
+curl -sL "<url-2>" -o ~/Downloads/static-ad-clone-v2.png && \
+curl -sL "<url-3>" -o ~/Downloads/static-ad-clone-v3.png && \
+open ~/Downloads/static-ad-clone-v1.png ~/Downloads/static-ad-clone-v2.png ~/Downloads/static-ad-clone-v3.png
 ```
 
-**Check the two unreliable things before declaring success:**
-1. Did the product match the reference image (same label, same colors, same proportions)?
-2. Did every text zone render with correct spelling, in the right position, at the right size?
+**Compare all three variants before presenting.** Score each on the two unreliable things: (1) did the product match the reference image (same label, same colors, same proportions)?, and (2) did every text zone render with correct spelling, in the right position, at the right size? Call these out per variant so the user knows what to look for.
 
-Call these out for the user to verify — they're the most common defects.
+Then summarize briefly, naming each variant and what you preserved and swapped:
+> "Here are three takes of your cloned static ad. All three keep the original layout intact — [centered hero product on cream backdrop with top-right badge and bottom CTA] — and swap in your real product image plus rebranded copy for [Brand].
+> • **Variant 1** — [one-line note, e.g. 'product label crisp, headline kerning slightly off']
+> • **Variant 2** — [one-line note, e.g. 'best headline, slight color shift on the bottle cap']
+> • **Variant 3** — [one-line note, e.g. 'cleanest overall, CTA button color too light']"
 
-Then summarize briefly, naming what you preserved and what you swapped:
-> "Here's your cloned static ad. I kept the original layout intact — [centered hero product on cream backdrop with top-right badge and bottom CTA] — and swapped in your real product image plus rebranded copy for [Brand]."
-
-**Text-overlay fallback.** If a wordmark or a key line came out garbled (and a re-roll doesn't fix it — it often won't), don't burn generations on it. Burn a clean text/logo overlay onto the relevant zone afterward with `arcads_add_text_overlay` (or composite the real logo PNG over the appropriate region). This is the reliable way to get pixel-perfect brand text.
+**Text-overlay fallback.** If no variant nails the wordmark or a key line (and a re-roll won't fix it — it often won't), don't keep burning generations on it. Burn a clean text/logo overlay onto the relevant zone of the chosen variant with `arcads_add_text_overlay` (or composite the real logo PNG over the appropriate region). This is the reliable way to get pixel-perfect brand text.
 
 Use `AskUserQuestion` for the final beat:
-- Love it — ready to use
-- Wordmark/text garbled — burn a clean overlay (reliable fix)
-- Product detail wrong — re-roll with stronger product-lock language
-- Layout drifted — re-roll restating the composition more strictly
-- Regenerate with a different direction (free text → what to change)
+- **Variant 1 is the winner** — proceed with it
+- **Variant 2 is the winner** — proceed with it
+- **Variant 3 is the winner** — proceed with it
+- **Combine the best parts** — burn a text overlay from one variant's copy onto another variant's product frame (specify which)
+- **All three are weak — re-roll all three** — generate three new takes with the same prompt
+- **Wordmark/text garbled on all** — burn a clean overlay on the best one (reliable fix)
+- **Product detail wrong on all** — re-roll with stronger product-lock language
+- **Layout drifted on all** — re-roll restating the composition more strictly
+- **Regenerate with a different direction** (free text → what to change, then runs three new takes)
 
 ---
 
 ## Polling strategy
 
-Wait the expected processing time from the tool description before first polling, then retry every ~20–30 seconds for image generation. Don't surface polling activity to the user — just say "Generating your ad…" and come back when it's done.
+Three parallel rolls. Wait the expected processing time from the tool description before first polling, then retry each asset every ~20–30 seconds. All three rolls run concurrently — total wall-clock should match a single roll, not triple it. Don't surface polling activity to the user — just say "Generating three takes of your ad…" and come back when all three are done.
 
 ---
 
@@ -284,7 +295,7 @@ Checklist:
 | `arcads_get_upload_url` + `curl -X PUT` | Step 2 — upload the reference ad and user product/logo |
 | `arcads_analyze_media` | Step 3 — extract the layout-faithful description from the reference ad |
 | `arcads_get_asset` | Step 3 + Step 5 — poll for analysis and generation results |
-| `arcads_generate_image` | Step 5 — generate the cloned static ad (with `referenceImages`) |
+| `arcads_generate_image` | Step 5 — generate the cloned static ad (called THREE times in parallel for 3 variants, with `referenceImages`) |
 | `arcads_watch_asset` | Step 5 — get the signed URL of the final image |
 | `arcads_add_text_overlay` | Step 5 fallback — burn a clean wordmark/text overlay when the model garbles on-screen text |
 | `open <file>` (after `curl` download) | Inline preview of the final image |

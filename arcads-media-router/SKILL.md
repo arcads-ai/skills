@@ -14,7 +14,7 @@ description: >
   voice work, translation, or enhancement — whether the input is text-only, an existing
   image, or an existing video. Always trigger before manually picking an arcads_* tool
   yourself. Defers to more specialized skills (arcads-clone-hook,
-  arcads-static-ad-cloner, arcads-spy-competitor-ads) when the request clearly matches
+  arcads-clone-static-ad, arcads-spy-competitor-ads) when the request clearly matches
   one of them; otherwise this is the right entry point. Do not trigger for purely analytical / read-only queries
   that aren't about producing or modifying a media asset.
 ---
@@ -46,7 +46,7 @@ Before routing, check whether one of these matches better and hand off instead:
 | "Find the hook", "where does the hook end", "analyze this ad's opening" | `arcads-clone-hook` (stop after analysis step) |
 | "Clone this hook for my brand", "recreate this opening for my product" (video) | `arcads-clone-hook` |
 | "Spy on competitors, find the best hook, and clone it for me" (full chain) | `arcads-clone-hook` (it auto-runs spy-competitor-ads when no video) |
-| "Clone this static ad for my brand", "recreate this image ad for my product" | `arcads-static-ad-cloner` |
+| "Clone this static ad for my brand", "recreate this image ad for my product" | `arcads-clone-static-ad` |
 
 Only route here when the request is a single generic media generation or edit (e.g. "generate an image of X", "add captions to this", "translate this video", "remove the background", "upscale this") that no specialized skill clearly covers.
 

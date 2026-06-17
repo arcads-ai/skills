@@ -5,7 +5,8 @@ description: >
   own brand in one continuous flow. Analyzes the source video with arcads_analyze_media
   to extract a reproduction-ready, beat-by-beat timeline (hook end timestamp, layout map,
   casting sheet, verbatim script, captions, Seedance 2.0 prompts), then optionally
-  rebuilds the hook with arcads_generate_video_seedance_20 — preserving the original's
+  rebuilds the hook with arcads_generate_video_seedance_20 — generating TWO variants
+  in parallel per run to maximize the odds of a winner — preserving the original's
   visual structure, emotional beat, pacing, and on-screen text while swapping all
   brand-specific content with the user's identity. Optionally takes a reference video —
   if none is provided, auto-runs arcads-spy-competitor-ads (video mode) to source one.
@@ -286,47 +287,57 @@ Seedance 2.0 has three recurring failure modes. Bake these guards into **every**
 
 A good prompt opens with a short **CONSTRAINTS** block (motion + only-what's-described), then the beat-by-beat timeline, with each branded wordmark spelled out inline.
 
-### 5d — Generate with Seedance 2.0
+### 5d — Generate two variants with Seedance 2.0
 
-**Reference uploads expire (~10 min).** The `external-api-temp-uploads/*` paths from `arcads_get_upload_url` are short-lived — if a generation fails with `REFERENCE_FILE_NOT_FOUND`, re-upload the asset (fresh `arcads_get_upload_url` + `curl -X PUT`) and retry with the new `filePath`. When in doubt, upload right before the generation call.
+**Always generate TWO variants in parallel.** Seedance is a probabilistic model — the same prompt produces materially different takes on lighting, micro-expressions, lip-sync accuracy, motion liveness, and wordmark rendering. Two parallel rolls roughly double the odds of landing at least one usable clip without doubling wall-clock time. This is not optional; never ship a single roll.
 
-Call `arcads_generate_video_seedance_20` with:
-- **prompt**: the full timeline-faithful prompt from 5b (with the 5c constraints block)
-- **referenceImages**: the uploaded `filePath`s for the real brand assets (logo first, product/screenshot next), referenced by number in the prompt
+**Reference uploads expire (~10 min).** The `external-api-temp-uploads/*` paths from `arcads_get_upload_url` are short-lived — if a generation fails with `REFERENCE_FILE_NOT_FOUND`, re-upload the asset (fresh `arcads_get_upload_url` + `curl -X PUT`) and retry with the new `filePath`. When in doubt, upload right before the generation calls.
+
+Make **two `arcads_generate_video_seedance_20` calls in parallel** (same tool call batch), both with the same parameters:
+- **prompt**: the full timeline-faithful prompt from 5b (with the 5c constraints block) — identical for both rolls
+- **referenceImages**: the same uploaded `filePath`s for both rolls (logo first, product/screenshot next), referenced by number in the prompt
 - **duration**: match the hook length from the timeline (round to the nearest integer within 4–12s)
 - **aspectRatio**: `"9:16"` for vertical (TikTok/Reels) unless the original was horizontal
 - **resolution**: `"1080p"`
 - **audioEnabled**: `true`
-- **productId**: if the call returns `PRODUCT_SELECTION_REQUIRED` with a list of products, ask the user which one to use, then pass its `id`.
+- **productId**: if the call returns `PRODUCT_SELECTION_REQUIRED` with a list of products, ask the user which one to use once, then pass its `id` to both rolls.
 
-Poll with `arcads_get_asset` until `status === "generated"` (or `"failed"`), then `arcads_watch_asset` to get the signed URL.
+The seed should differ between rolls — if the tool exposes a `seed` parameter, set distinct values; otherwise rely on Seedance's default per-call randomness. Do **not** change the prompt between rolls (that would test two different things instead of two takes of the same thing).
 
-Download and open it:
+Poll both assets with `arcads_get_asset` until each reports `status === "generated"` (or `"failed"`). If one fails outright, keep the other and re-roll the failed one once — never proceed with zero successful clips. Then call `arcads_watch_asset` on each to get the signed URLs.
+
+Download and open both variants side-by-side:
 ```
-curl -sL "<url>" -o ~/Downloads/hook-clone.mp4 && open ~/Downloads/hook-clone.mp4
+curl -sL "<url-1>" -o ~/Downloads/hook-clone-v1.mp4 && \
+curl -sL "<url-2>" -o ~/Downloads/hook-clone-v2.mp4 && \
+open ~/Downloads/hook-clone-v1.mp4 ~/Downloads/hook-clone-v2.mp4
 ```
 
-**Check the two unreliable things before declaring success:** (1) did every element that should move actually move (no accidental stills), and (2) did the brand wordmark / on-screen text render with correct spelling? Call these out for the user to verify — they're the most common defects.
+**Compare the two variants before presenting.** Score each on the two unreliable things: (1) did every element that should move actually move (no accidental stills), and (2) did the brand wordmark / on-screen text render with correct spelling? Call these out for both clips so the user knows what to look for.
 
-Then summarize briefly, naming what you preserved and what you swapped:
-> "Here's your cloned hook. I kept your timeline beat-for-beat — [split-screen → product reveal → payoff] — and swapped in your real logo and app screenshot, with the script rebranded for [Brand]. It runs [X] seconds."
+Then summarize briefly, naming the two variants and what you preserved and swapped:
+> "Here are two takes of your cloned hook. Both keep the timeline beat-for-beat — [split-screen → product reveal → payoff] — and swap in your real logo and app screenshot, with the script rebranded for [Brand]. Each runs [X] seconds.
+> • **Variant 1** — [one-line note, e.g. 'cleaner wordmark, lip-sync slightly off at 2.3s']
+> • **Variant 2** — [one-line note, e.g. 'better delivery, faint motion glitch on the phone screen']"
 
-**Text-overlay fallback.** If the wordmark or a key line came out garbled (and a re-roll doesn't fix it — it often won't), don't keep burning generations on it. Burn a clean text/logo overlay onto the relevant beat afterward with `arcads_add_text_overlay` (or composite the real logo PNG over the brand-reveal frame). This is the reliable way to get pixel-perfect brand text.
+**Text-overlay fallback.** If neither variant nails the wordmark or a key line (and a re-roll won't fix it — it often won't), don't keep burning generations on it. Burn a clean text/logo overlay onto the relevant beat of the chosen variant with `arcads_add_text_overlay` (or composite the real logo PNG over the brand-reveal frame). This is the reliable way to get pixel-perfect brand text.
 
-**Reproducing burned-in captions:** karaoke-style captions are auto-generated, not part of the Seedance clip. After generating the talking-head video, run `arcads_add_captions` (style_1 ≈ bold white + yellow word highlight) on it — it transcribes the clip's own audio and burns synced captions, so they match automatically. Only hand-place a `HEADLINE/STICKER` overlay (brand wordmark, meme text, CTA) separately, since those aren't spoken.
+**Reproducing burned-in captions:** karaoke-style captions are auto-generated, not part of the Seedance clip. After the user picks a variant, run `arcads_add_captions` (style_1 ≈ bold white + yellow word highlight) on it — it transcribes the clip's own audio and burns synced captions, so they match automatically. Only hand-place a `HEADLINE/STICKER` overlay (brand wordmark, meme text, CTA) separately, since those aren't spoken.
 
 Use `AskUserQuestion` for the final beat:
-- Love it — ready to use
-- Wordmark/text garbled — burn a clean overlay on that beat (reliable fix)
-- Element still static — re-roll emphasizing full live motion
-- Regenerate with a different direction (free text → what to change)
+- **Variant 1 is the winner** — proceed with it (captions / overlays applied to v1)
+- **Variant 2 is the winner** — proceed with it (captions / overlays applied to v2)
+- **Both are weak — re-roll both** — generate two new takes with the same prompt
+- **Wordmark/text garbled on both** — burn a clean overlay on the better one (reliable fix)
+- **Both have a static element** — re-roll emphasizing full live motion
+- **Regenerate with a different direction** (free text → what to change, then runs two new takes)
 
 ---
 
 ## Polling strategy
 
 - **Analysis (Step 2):** poll every ~10–20s, usually returns within a minute.
-- **Generation (Step 5):** wait the expected processing time from the tool description (~7 min for Seedance 2.0) before first polling, then retry every 60 seconds. Don't surface polling activity — just say "Analyzing the hook…" / "Generating your hook…" and come back when done.
+- **Generation (Step 5):** two parallel rolls. Wait the expected processing time from the tool description (~7 min for Seedance 2.0) before first polling, then retry each asset every 60 seconds. Both rolls run concurrently — total wall-clock should match a single roll, not double it. Don't surface polling activity — just say "Generating two takes of your hook…" and come back when both are done.
 
 ---
 
@@ -366,7 +377,7 @@ Checklist:
 | `arcads_get_upload_url` + `curl -X PUT` | Steps 2 + 4 — upload the source video and the brand assets |
 | `arcads_analyze_media` | Step 2 — extract the reproduction-ready hook breakdown |
 | `arcads_get_asset` | Steps 2 + 5 — poll for analysis and generation results |
-| `arcads_generate_video_seedance_20` | Step 5 — generate the cloned hook (with `referenceImages`) |
+| `arcads_generate_video_seedance_20` | Step 5 — generate the cloned hook (called TWICE in parallel for 2 variants, with `referenceImages`) |
 | `arcads_watch_asset` | Step 5 — get the signed URL of the final video |
 | `arcads_add_captions` | Step 5 — burn karaoke-synced captions on the generated clip |
 | `arcads_add_text_overlay` | Step 5 fallback — burn a clean wordmark/text overlay when Seedance garbles on-screen text |
