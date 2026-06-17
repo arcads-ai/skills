@@ -51,7 +51,7 @@ import json, sys
 data = json.load(sys.stdin)
 for s in data.get('skills', []):
     print(s['name'])
-" 2>/dev/null || echo -e "winning-ad\nspy-competitor-ads\nhook-identifier\nhook-cloner\nwinning-hook-pipeline"
+" 2>/dev/null || echo -e "arcads-winning-ad\narcads-spy-competitor-ads\narcads-hook-identifier\narcads-hook-cloner\narcads-static-ad-cloner\narcads-winning-hook-pipeline"
 }
 
 list_skills_from_local() {
@@ -62,7 +62,7 @@ import json, sys
 data = json.load(open('$manifest'))
 for s in data.get('skills', []):
     print(s['name'])
-" 2>/dev/null || echo -e "winning-ad\nspy-competitor-ads\nhook-identifier\nhook-cloner\nwinning-hook-pipeline"
+" 2>/dev/null || echo -e "arcads-winning-ad\narcads-spy-competitor-ads\narcads-hook-identifier\narcads-hook-cloner\narcads-static-ad-cloner\narcads-winning-hook-pipeline"
 }
 
 clone_to_tmp() {

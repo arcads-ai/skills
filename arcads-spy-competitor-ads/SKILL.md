@@ -1,5 +1,5 @@
 ---
-name: spy-competitor-ads
+name: arcads-spy-competitor-ads
 description: >
   Find and download competitor ads from the Meta Ad Library. Defaults to video ads, but
   switches to static/image ads whenever the user asks for them ("static ads", "image ads",

@@ -1,5 +1,5 @@
 ---
-name: hook-identifier
+name: arcads-hook-identifier
 description: >
   Analyze a video ad to identify its hook — the attention-grabbing opening sequence —
   using arcads_analyze_media. Returns three things: (1) the exact timestamp in seconds

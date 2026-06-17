@@ -1,8 +1,8 @@
 ---
-name: hook-cloner
+name: arcads-hook-cloner
 description: >
   Clone a competitor's ad hook for the user's own brand. Takes the output of the
-  hook-identifier skill (or a raw video) and generates a brand-new hook video using
+  arcads-hook-identifier skill (or a raw video) and generates a brand-new hook video using
   Seedance 2.0 — preserving the original's visual structure, emotional beat, pacing,
   and on-screen text while replacing all brand-specific content with the user's identity.
   Never invents brand or product details, and never imagines product visuals; always
@@ -10,7 +10,7 @@ description: >
   to "use this hook for my brand", "recreate this opening for my product", "clone the
   first few seconds of this ad", "I want the same hook but for [brand]", "adapt this
   hook to sell my product", or any phrasing implying taking an existing hook and
-  rebuilding it with a new brand. Also trigger when the user has just run hook-identifier
+  rebuilding it with a new brand. Also trigger when the user has just run arcads-hook-identifier
   and says "now clone it", "make it mine", or "recreate this for us". Always trigger
   before manually calling arcads_generate_video_seedance_20 when the goal is hook
   recreation for a new brand.
@@ -39,7 +39,7 @@ The hook is the most important 3–15 seconds of any ad. Get the brand details a
 
 **A. Hook-identifier output (or a user-written timeline) already in the conversation.** Use it directly and verbatim — the timeline, the hook end timestamp, and the "why it works" summary are all you need. If the user wrote their own beat-by-beat description, treat it as the source of truth and do not paraphrase it away.
 
-**B. No hook analysis yet.** Ask: "Which video would you like to clone the hook from? Share a file path or URL." Then load and run the `hook-identifier` skill on it. Don't proceed until you have a complete timeline.
+**B. No hook analysis yet.** Ask: "Which video would you like to clone the hook from? Share a file path or URL." Then load and run the `arcads-hook-identifier` skill on it. Don't proceed until you have a complete timeline.
 
 ---
 
@@ -150,7 +150,7 @@ Wait the expected processing time from the tool description (~7 min for Seedance
 
 | Tool | Where |
 |---|---|
-| `arcads_analyze_media` (via hook-identifier) | Step 1B — if no hook analysis yet |
+| `arcads_analyze_media` (via arcads-hook-identifier) | Step 1B — if no hook analysis yet |
 | `arcads_get_upload_url` + `curl -X PUT` | Step 2 — upload the real logo / product assets |
 | `arcads_generate_video_seedance_20` | Step 3c — generate the cloned hook (with `referenceImages`) |
 | `arcads_get_asset` / `arcads_watch_asset` | After generation — poll and get the signed URL |

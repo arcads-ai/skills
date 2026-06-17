@@ -4,9 +4,9 @@
   "repository": "https://github.com/arcads-ai/skills",
   "skills": [
     {
-      "name": "spy-competitor-ads",
-      "description": "Research and download the top 5 highest-performing competitor video ads from the Meta Ad Library, ranked by total views/impressions. Use when a user wants to spy on competitors, find winning ads, research what's working in their category, or build a swipe file.",
-      "url": "https://raw.githubusercontent.com/arcads-ai/skills/main/spy-competitor-ads/SKILL.md",
+      "name": "arcads-spy-competitor-ads",
+      "description": "Research and download the top competitor ads from the Meta Ad Library. Videos by default, statics on request (media_type=image). Use when a user wants to spy on competitors, find winning ads, research what's working in their category, or build a swipe file.",
+      "url": "https://raw.githubusercontent.com/arcads-ai/skills/main/arcads-spy-competitor-ads/SKILL.md",
       "tags": [
         "competitor",
         "research",
@@ -14,13 +14,14 @@
         "ads",
         "swipe-file",
         "intelligence",
-        "video"
+        "video",
+        "static"
       ]
     },
     {
-      "name": "hook-identifier",
+      "name": "arcads-hook-identifier",
       "description": "Analyze a video ad to identify its hook — the attention-grabbing opening sequence. Returns the exact timestamp where the hook ends and a reproduction-ready frame-by-frame timeline. Use when a user wants to find the hook in an ad, understand how long it lasts, or get a breakdown detailed enough to recreate the scene.",
-      "url": "https://raw.githubusercontent.com/arcads-ai/skills/main/hook-identifier/SKILL.md",
+      "url": "https://raw.githubusercontent.com/arcads-ai/skills/main/arcads-hook-identifier/SKILL.md",
       "tags": [
         "hook",
         "analysis",
@@ -31,9 +32,9 @@
       ]
     },
     {
-      "name": "hook-cloner",
-      "description": "Clone a competitor's ad hook for the user's own brand. Takes hook-identifier output (or a raw video) and generates a brand-new hook video using Seedance 2.0 — preserving the original's structure and emotional beat while swapping in the user's brand identity. Use when a user wants to recreate a hook for their product.",
-      "url": "https://raw.githubusercontent.com/arcads-ai/skills/main/hook-cloner/SKILL.md",
+      "name": "arcads-hook-cloner",
+      "description": "Clone a competitor's ad hook for the user's own brand. Takes arcads-hook-identifier output (or a raw video) and generates a brand-new hook video using Seedance 2.0 — preserving the original's structure and emotional beat while swapping in the user's brand identity. Use when a user wants to recreate a hook for their product.",
+      "url": "https://raw.githubusercontent.com/arcads-ai/skills/main/arcads-hook-cloner/SKILL.md",
       "tags": [
         "hook",
         "clone",
@@ -45,9 +46,9 @@
       ]
     },
     {
-      "name": "static-ad-cloner",
-      "description": "Clone a static (image) ad for the user's own brand. Takes a reference static ad image and at least one real product image plus a short description, then produces a brand-new static ad using arcads_generate_image — preserving the original's composition, hierarchy, lighting, palette, typography, and copy structure while swapping every brand-specific element for the user's product. Use when a user wants to recreate a static/image ad for their product.",
-      "url": "https://raw.githubusercontent.com/arcads-ai/skills/main/static-ad-cloner/SKILL.md",
+      "name": "arcads-static-ad-cloner",
+      "description": "Clone a static (image) ad for the user's own brand. Optionally takes a reference static ad — if none is provided, auto-runs arcads-spy-competitor-ads in static mode to source one — plus at least one real product image and a short description, then produces a brand-new static ad using arcads_generate_image, preserving the original's composition, hierarchy, lighting, palette, typography, and copy structure while swapping every brand-specific element for the user's product. Use when a user wants to recreate a static/image ad for their product.",
+      "url": "https://raw.githubusercontent.com/arcads-ai/skills/main/arcads-static-ad-cloner/SKILL.md",
       "tags": [
         "static",
         "image",
@@ -59,9 +60,9 @@
       ]
     },
     {
-      "name": "winning-hook-pipeline",
-      "description": "End-to-end pipeline that chains three skills in sequence: spy-competitor-ads → hook-identifier → hook-cloner. Finds the top-performing competitor ads, identifies the best hook, and clones it for the user's brand in one continuous flow. Use when the user wants to do all three steps together.",
-      "url": "https://raw.githubusercontent.com/arcads-ai/skills/main/winning-hook-pipeline/SKILL.md",
+      "name": "arcads-winning-hook-pipeline",
+      "description": "End-to-end pipeline that chains three skills in sequence: arcads-spy-competitor-ads → arcads-hook-identifier → arcads-hook-cloner. Finds the top-performing competitor ads, identifies the best hook, and clones it for the user's brand in one continuous flow. Use when the user wants to do all three steps together.",
+      "url": "https://raw.githubusercontent.com/arcads-ai/skills/main/arcads-winning-hook-pipeline/SKILL.md",
       "tags": [
         "pipeline",
         "hook",

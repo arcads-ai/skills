@@ -33,7 +33,7 @@ Add to `~/.config/opencode/opencode.json`:
 ```bash
 git clone --depth 1 https://github.com/arcads-ai/skills.git /tmp/arcads-skills
 mkdir -p ~/.agents/skills
-for skill in winning-ad spy-competitor-ads hook-identifier hook-cloner static-ad-cloner winning-hook-pipeline; do
+for skill in arcads-winning-ad arcads-spy-competitor-ads arcads-hook-identifier arcads-hook-cloner arcads-static-ad-cloner arcads-winning-hook-pipeline; do
   cp -r /tmp/arcads-skills/$skill ~/.agents/skills/
 done
 rm -rf /tmp/arcads-skills
@@ -62,7 +62,7 @@ Skills placed in `~/.claude/skills/` are auto-loaded.
 ```bash
 git clone --depth 1 https://github.com/arcads-ai/skills.git /tmp/arcads-skills
 mkdir -p ~/.claude/skills
-for skill in winning-ad spy-competitor-ads hook-identifier hook-cloner static-ad-cloner winning-hook-pipeline; do
+for skill in arcads-winning-ad arcads-spy-competitor-ads arcads-hook-identifier arcads-hook-cloner arcads-static-ad-cloner arcads-winning-hook-pipeline; do
   cp -r /tmp/arcads-skills/$skill ~/.claude/skills/
 done
 rm -rf /tmp/arcads-skills
@@ -99,14 +99,14 @@ curl -fsSL https://raw.githubusercontent.com/arcads-ai/skills/main/install.sh | 
 ## Available skills
 
 
-| Skill                                                     | Description                                                                                               |
-| --------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
-| [winning-ad](./winning-ad/SKILL.md)                       | Step-by-step workflow for creating high-converting ads: discovery → image → video → enhancements          |
-| [spy-competitor-ads](./spy-competitor-ads/SKILL.md)       | Find and download top competitor ads from the Meta Ad Library — videos by default, statics on request     |
-| [hook-identifier](./hook-identifier/SKILL.md)             | Analyze a video ad to identify its hook — returns the end timestamp and a reproduction-ready timeline     |
-| [hook-cloner](./hook-cloner/SKILL.md)                     | Clone a competitor's hook for your brand using Seedance 2.0, preserving structure while swapping identity |
-| [static-ad-cloner](./static-ad-cloner/SKILL.md)           | Clone a static (image) ad for your brand using arcads_generate_image, preserving layout/copy structure    |
-| [winning-hook-pipeline](./winning-hook-pipeline/SKILL.md) | End-to-end pipeline: spy on competitors → identify the best hook → clone it for your brand                |
+| Skill                                                                   | Description                                                                                               |
+| ----------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------- |
+| [arcads-winning-ad](./arcads-winning-ad/SKILL.md)                       | Step-by-step workflow for creating high-converting ads: discovery → image → video → enhancements          |
+| [arcads-spy-competitor-ads](./arcads-spy-competitor-ads/SKILL.md)       | Find and download top competitor ads from the Meta Ad Library — videos by default, statics on request     |
+| [arcads-hook-identifier](./arcads-hook-identifier/SKILL.md)             | Analyze a video ad to identify its hook — returns the end timestamp and a reproduction-ready timeline     |
+| [arcads-hook-cloner](./arcads-hook-cloner/SKILL.md)                     | Clone a competitor's hook for your brand using Seedance 2.0, preserving structure while swapping identity |
+| [arcads-static-ad-cloner](./arcads-static-ad-cloner/SKILL.md)           | Clone a static (image) ad for your brand using arcads_generate_image, preserving layout/copy structure    |
+| [arcads-winning-hook-pipeline](./arcads-winning-hook-pipeline/SKILL.md) | End-to-end pipeline: spy on competitors → identify the best hook → clone it for your brand                |
 
 
 ---
