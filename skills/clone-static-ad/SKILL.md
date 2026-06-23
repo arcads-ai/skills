@@ -1,7 +1,6 @@
 ---
 name: clone-static-ad
-description: Clone a static (image) ad for the user's brand. Manual-only — invoke with /arcads:clone-static-ad or via another skill.
-disable-model-invocation: true
+description: Clone a static (image) ad for the user's brand. Invoke with /arcads:clone-static-ad or via another skill.
 ---
 
 # Static Ad Cloner
