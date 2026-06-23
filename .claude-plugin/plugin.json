@@ -1,7 +1,7 @@
 {
   "name": "arcads",
   "description": "Reusable AI skills for creating high-converting ads with Arcads — spy on competitors, clone winning hooks and static ads, and route any image/video generation to the right Arcads MCP tool.",
-  "version": "1.0.0",
+  "version": "1.0.3",
   "author": {
     "name": "Arcads",
     "url": "https://arcads.ai"
