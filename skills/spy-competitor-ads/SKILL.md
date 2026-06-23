@@ -1,7 +1,6 @@
 ---
 name: spy-competitor-ads
-description: Find and download competitor ads from the Meta Ad Library (video, image, or both). Manual-only — invoke with /arcads:spy-competitor-ads or via another skill.
-disable-model-invocation: true
+description: Find and download competitor ads from the Meta Ad Library (video, image, or both). Invoke with /arcads:spy-competitor-ads or via another skill.
 ---
 
 # Spy Competitor Ads — Find & Download

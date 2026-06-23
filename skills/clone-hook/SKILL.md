@@ -1,7 +1,6 @@
 ---
 name: clone-hook
-description: Identify a video ad's hook and clone it for the user's brand. Manual-only — invoke with /arcads:clone-hook or via another skill.
-disable-model-invocation: true
+description: Identify a video ad's hook and clone it for the user's brand. Invoke with /arcads:clone-hook or via another skill.
 ---
 
 # Arcads Clone Hook
