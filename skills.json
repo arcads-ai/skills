@@ -5,7 +5,7 @@
   "skills": [
     {
       "name": "ugc-actor-ad",
-      "description": "Build a converting UGC video ad performed by an actor from the Arcads library, end to end: researches the category with spy-competitor-ads to find the pains the market has already validated, writes a five-beat 30-second script on that angle, lets the user cast a face from the Seedance actor library, storyboards a frame per beat with arcads_generate_image as a cheap approval gate, then generates TWO variants with arcads_generate_video_seedance_25_actor and finishes the winner with captions and overlays. Use when a user wants a UGC ad, an actor to present their product, or a spokesperson video that converts.",
+      "description": "Build a converting UGC video ad performed by an actor from the Arcads library, end to end: researches the category with spy-competitor-ads to find the pains the market has already validated, writes a five-beat 30-second script on that angle, lets the user cast a face visually from the Seedance actor library, boards the five beats as one image so setting, wardrobe and framing are settled cheaply, then generates the ad with arcads_generate_video_seedance_25_actor — feeding the approved board forward as a reference — and finishes it with captions and overlays. Rolls one take by default and names the flaws it sees, so re-rolls are earned rather than speculative. Use when a user wants a UGC ad, an actor to present their product, or a spokesperson video that converts.",
       "url": "https://raw.githubusercontent.com/arcads-ai/skills/main/skills/ugc-actor-ad/SKILL.md",
       "tags": [
         "ugc",
