@@ -86,24 +86,29 @@ arcads_list_situations with contentType='seedance_actors', pageSize=20
 
 Read `libraries` on each entry to confirm you got actor-library rows; an actor that also serves another library lists both there, and its `type` may name the other one.
 
-Each entry carries a **preview clip** and a **still**. Casting is a visual decision, so the user has to *see* the faces — a written description is not a substitute. Build a numbered contact sheet and open it:
+Each entry carries the actor's **name**, a **preview clip** and a **still**. Casting is a visual decision, so the user has to *see* the faces — a written description is not a substitute. Build a contact sheet and open it:
 
 1. Pick **4–6 candidates** that fit the audience and download their stills into a working
-   directory, named by position so the labels come out right:
+   directory, **each file named after its actor** — the sheet takes its labels from the
+   filenames, so this is what puts the names under the faces:
    ```bash
-   curl -sL "<still-url-1>" -o 1.jpg && curl -sL "<still-url-2>" -o 2.jpg   # …etc
+   curl -sL "<still-url-for-Marcus>" -o Marcus.jpg && curl -sL "<still-url-for-Nadia>" -o Nadia.jpg   # …etc
    ```
 2. Tile them into one labelled image. Scale `-tile` to the number of candidates (`4x1`
    for four, `6x1` for six) and keep every other flag as-is:
    ```bash
-   montage -label 'Actor %t' 1.jpg 2.jpg 3.jpg 4.jpg \
+   montage -label '%t' Marcus.jpg Nadia.jpg Imani.jpg Kai.jpg \
      -tile 4x1 -geometry 260x462+10+10 -background '#111' -fill white \
      -font /System/Library/Fonts/Supplemental/Arial.ttf -pointsize 30 actors.jpg
    ```
-   Two things this depends on: `-label` precedes the inputs, because it is a setting
-   that applies to images read after it; and the font is given by path, because
-   ImageMagick on macOS has no default font and drops the labels with an
-   `unable to read font` error.
+   Three things this depends on: `-label '%t'` precedes the inputs, because it is a
+   setting that applies to images read after it, and `%t` resolves to each file's own
+   name; the font is given by path, because ImageMagick on macOS has no default font and
+   drops the labels with an `unable to read font` error; and a name with a space needs its
+   filename quoted.
+
+   Where an entry has no name, fall back to numbering that one `1.jpg`, `2.jpg`, … so the
+   sheet still labels every face with something the user can point at.
 3. **Deliver the sheet to the user as its own step.** Nothing has been shown until this
    happens, and chaining it onto the montage command is how it gets dropped when that
    command is edited for a different number of actors. Use whatever file-delivery tool
@@ -111,16 +116,21 @@ Each entry carries a **preview clip** and a **still**. Casting is a visual decis
    with `display: "render"`. Where no such tool exists, `open actors.jpg` shows it in the
    system viewer instead. Read the sheet yourself in the same beat, so the rationale you
    write next describes the faces that are actually in it.
-4. Then `AskUserQuestion` with one option per actor — **"Actor 1", "Actor 2", …** matching the numbers on the sheet — and add a phrase per option on why that face suits this script (setting, energy, apparent age). Include an option to see a different set.
+4. Then `AskUserQuestion` with one option per actor, **each option labelled with that
+   actor's name** so it matches the sheet, and a phrase per option on why that face suits
+   this script (setting, energy, apparent age). Include an option to see a different set.
 
-   Mention in the question text that the numbered sheet is just above, since the question
-   may open over it.
+   Mention in the question text that the sheet is just above, since the question may open
+   over it.
+
+Refer to the cast actor by name from here on — in the board description, in what you say
+to the user, and when you present the finished ad.
 
 Read the stills yourself too, so your one-line rationale per option describes the person who is actually in the frame.
 
 Keep the chosen entry's id for the generation call and never show it to the user.
 
-If the library comes back empty, tell the user the Seedance actor library isn't populated for their workspace yet and offer to run the same script with `arcads_generate_video_seedance_25` conditioned on a reference image they supply.
+If the library comes back empty, tell the user the Actors+ library isn't populated for their workspace yet and offer to run the same script with `arcads_generate_video_seedance_25` conditioned on a reference image they supply.
 
 ## Step 5 — Storyboard the beats
 
