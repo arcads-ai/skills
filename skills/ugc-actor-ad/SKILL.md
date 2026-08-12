@@ -255,7 +255,7 @@ One `arcads_generate_video_seedance_25_actor` call:
 - **referenceImages**: `["<local path to the approved board>"]` when you boarded in Step 5; omit the field entirely when you skipped
 - **duration**: the script's length, rounded to a whole second within 4–30
 - **aspectRatio**: `"9:16"` for social
-- **resolution**: `"480p"` (use `"720p"` only if the user asked for a sharper deliverable)
+- **resolution**: `"720p"` — common resolution for a decent quality ad
 - **audioEnabled**: `true`
 - **nbGenerations**: `1`
 
