@@ -4,6 +4,22 @@
   "repository": "https://github.com/arcads-ai/skills",
   "skills": [
     {
+      "name": "ugc-actor-ad",
+      "description": "Build a converting UGC video ad performed by an actor from the Arcads library, end to end: researches the category with spy-competitor-ads to find the pains the market has already validated, writes a five-beat 30-second script on that angle, lets the user cast a face from the Seedance actor library, storyboards a frame per beat with arcads_generate_image as a cheap approval gate, then generates TWO variants with arcads_generate_video_seedance_25_actor and finishes the winner with captions and overlays. Use when a user wants a UGC ad, an actor to present their product, or a spokesperson video that converts.",
+      "url": "https://raw.githubusercontent.com/arcads-ai/skills/main/skills/ugc-actor-ad/SKILL.md",
+      "tags": [
+        "ugc",
+        "actor",
+        "video",
+        "ad-creative",
+        "script",
+        "research",
+        "seedance",
+        "arcads",
+        "brand"
+      ]
+    },
+    {
       "name": "spy-competitor-ads",
       "description": "Research and download the top competitor ads from the Meta Ad Library. Videos by default, statics on request (media_type=image). Use when a user wants to spy on competitors, find winning ads, research what's working in their category, or build a swipe file.",
       "url": "https://raw.githubusercontent.com/arcads-ai/skills/main/skills/spy-competitor-ads/SKILL.md",
