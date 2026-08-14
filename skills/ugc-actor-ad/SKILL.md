@@ -130,7 +130,7 @@ Read the stills yourself too, so your one-line rationale per option describes th
 
 Keep the chosen entry's id for the generation call and never show it to the user.
 
-If the library comes back empty, tell the user the Actors+ library isn't populated for their workspace yet and offer to run the same script with `arcads_generate_video_seedance_25` conditioned on a reference image they supply.
+If the library comes back empty, tell the user the Actor+ library isn't populated for their workspace yet and offer to run the same script with `arcads_generate_video_seedance_25` conditioned on a reference image they supply.
 
 ## Step 5 — Storyboard the beats
 
@@ -187,12 +187,12 @@ Write the prompt in blocks, in this order. **Position matters: the start and end
 
 ```
 [REFERENCES]
-What each reference image is, by slot. /image1 is the actor — the person who
-performs the ad. /image2 is the approved storyboard for this ad, five panels
-in order: use its panels as the shot plan for the stages below and expand
-them into one continuous moving piece. Include this block only when you
-boarded in Step 5; with no board, /image2 does not exist and naming it
-invents a reference.
+What each reference image is, by slot. /image1 is the approved storyboard for
+this ad, five panels in order: use its panels as the shot plan for the stages
+below and expand them into one continuous moving piece. The actor arrives in
+their own slot and is already described to the model, so name only the images
+you passed. Include this block only when you boarded in Step 5; with no board,
+/image1 does not exist and naming it invents a reference.
 
 [CAMERA]
 How it's filmed and by whom. Ask for authentic imperfection explicitly —
@@ -259,11 +259,12 @@ One `arcads_generate_video_seedance_25_actor` call:
 - **audioEnabled**: `true`
 - **nbGenerations**: `1`
 
-The actor's still is always `/image1`, so anything you pass in `referenceImages` is numbered
-from `/image2` up in the order you pass it — the first entry is `/image2`, the second
-`/image3`. Keep that order matching what `[REFERENCES]` claims, and pass the board first.
-Up to 8 fit, so a product shot or a location photo can ride alongside the board; name each
-one in `[REFERENCES]` or the model has to guess what it is looking at.
+What you pass in `referenceImages` is named from `/image1` up in the order you pass it — the
+first entry is `/image1`, the second `/image2`. Keep that order matching what `[REFERENCES]`
+claims, and pass the board first. Up to 8 fit, so a product shot or a location photo can ride
+alongside the board; name each one in `[REFERENCES]` or the model has to guess what it is
+looking at. The actor's still is sent after them, which is what keeps those numbers stable
+however many you pass, and the model is told who the performer is without a placeholder.
 
 Say the wait up front — ~7 minutes for a 30-second clip — so it's expected. When the user
 asks for options in one pass, `nbGenerations: 2` returns two independent takes from a
@@ -318,7 +319,7 @@ Match the fix to the symptom rather than re-rolling blindly:
 | Actor drifts into someone else | Remove every appearance detail from the prompt; the still is doing that job. Tighten `[CONSISTENCY]`. |
 | Lip-sync falls apart late | The script is too long for the duration. Cut words, not seconds. |
 | Narrated b-roll instead of talking head | Restate `[STYLE]` at both the start and the end of the prompt. |
-| Output is a grid or split screen | The board leaked into the composition. Restate in `[REFERENCES]` that /image2 is a shot plan to expand, and harden the single-full-frame ban in `[CONSTRAINTS]`. |
+| Output is a grid or split screen | The board leaked into the composition. Restate in `[REFERENCES]` that /image1 is a shot plan to expand, and harden the single-full-frame ban in `[CONSTRAINTS]`. |
 | Beats appear out of order, or one is missing | The board's panel order is the shot plan the model follows — check the panels are numbered and in script order, and that `[STAGES]` matches them one to one. |
 | Garbled text on screen | Expected. Ban it in `[CONSTRAINTS]` and burn it on with `arcads_add_text_overlay`. |
 | Delivery is flat | The hook is the likely culprit, not the model. Rewrite it into a sharper shape and re-roll. |
