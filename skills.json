@@ -62,6 +62,172 @@
         "arcads",
         "mcp"
       ]
+    },
+    {
+      "name": "ads",
+      "description": "Arcads ads skill — understand the user's marketing goal, research their brand, and produce ad creatives through the Arcads MCP server: static image ads, AI video ads, actor-led UGC formats, app demos, unboxings, try-ons, plus post-production (subtitles, overlays, hook variants, translation). Use when the user says \"make ads\", \"make a creative\", \"recreate this ad/post\", \"turn this into a video\", references a viral format, mentions creative fatigue or rising CPMs, or wants existing creatives edited, localized, or re-hooked. Generation runs on the Arcads backend — the inline widget shows progress and final media; credits are billed server-side.",
+      "url": "https://raw.githubusercontent.com/arcads-ai/skills/main/skills/ads/SKILL.md",
+      "tags": [
+        "arcads",
+        "ads",
+        "creative",
+        "video",
+        "image",
+        "marketing",
+        "meta-ads",
+        "tiktok",
+        "hooks"
+      ]
+    },
+    {
+      "name": "animated-ad",
+      "description": "Converts a product, offer, or raw ad script into a production-ready Vox-style paper-collage animated ad for Arcads Seedance 2.0 (arcads_generate_video_seedance_20, max 15s per clip): a voice-over script with per-clip timestamps plus copy-paste-ready prompts, one self-contained prompt per clip with internal timeframes. Use whenever the user wants an \"arcads animated ad\", \"arcads anime ad\", a \"Vox-style\" ad, \"paper texture animation\", \"explainer ad\", \"motion graphics ad\", \"Vox explainer\", a Seedance Vox video, or pastes a product/offer and says \"make me an animated ad\" or \"animate this script Vox-style\". Also triggers on an uploaded product image or a request for the timestamped VO timeline. Voice-over is recorded separately (ElevenLabs, arcads_text_to_speech, or a real read) and layered in post, NOT Seedance native audio. Defaults to 9-figure DTC direct-response writing: emotion-first, benefit-driven. Outputs SIMPLE (short prompt per clip) and COMPLEX (full motion-graphics direction) workflows.",
+      "url": "https://raw.githubusercontent.com/arcads-ai/skills/main/skills/animated-ad/SKILL.md",
+      "tags": [
+        "arcads",
+        "animated",
+        "vox",
+        "paper-collage",
+        "explainer",
+        "seedance",
+        "voice-over",
+        "script"
+      ]
+    },
+    {
+      "name": "static-to-motion",
+      "description": "Turn a finished static ad into short video for paid social on the Arcads MCP connector using Seedance 2.0. Reads the static, classifies its layout archetype, then offers two modes: SIMPLE, where the composition is preserved and only what would really move moves, elements revealed one beat at a time; and CREATIVE, where the static seeds one stated idea, with morph, scale violation, match cuts and camera moves allowed. Trigger when a user uploads a static ad, Meta static, product still, flatlay, shade chart, swatch layout or offer card and asks to animate it, make it move, turn it into a video or Reel, animate my statics, make this a video, or asks for a build-up or assemble-from-empty reveal. Also trigger when they want both a safe and a creative version to A/B test. Do NOT use for cloning a reference video with a swapped product (viral-clone), restyling raw footage (omniflash-restyle), or building ads from a product URL with no static (arcads-meta-ad-engine).",
+      "url": "https://raw.githubusercontent.com/arcads-ai/skills/main/skills/static-to-motion/SKILL.md",
+      "tags": [
+        "arcads",
+        "static",
+        "animate",
+        "seedance",
+        "paid-social",
+        "reel",
+        "video"
+      ]
+    },
+    {
+      "name": "amazon-listing-system",
+      "description": "Turn one product URL + one product photo into a full Amazon listing image set: research buyer angles, then generate Hero/Benefits/Ingredients/Lifestyle/Reviews images via Arcads.",
+      "url": "https://raw.githubusercontent.com/arcads-ai/skills/main/skills/amazon-listing-system/SKILL.md",
+      "tags": [
+        "arcads",
+        "amazon",
+        "listing",
+        "image",
+        "ecommerce",
+        "hero",
+        "product"
+      ]
+    },
+    {
+      "name": "collage-motion",
+      "description": "End-to-end Arcads-native pipeline for halftone paper-collage and stop-motion-graphic ads. Decodes a reference image into a field-editable JSON spec, generates on-brand stills with nano-banana-2, then animates them into assemble-from-empty motion with Seedance 2.0, all on the Arcads MCP connector. Trigger whenever the user pastes a reference to decode, replicate, or make \"similar\"; asks for a halftone, paper-cut, paper-collage, editorial-collage, or stop-motion-graphic look; wants a still or product turned into an animated ad, explainer, or motion graphic on Arcads; or says \"analyze this\", \"break this down\", \"reverse-engineer this look\", \"animate this\", \"assemble it in\", \"make a collage ad\", or \"Seedance this\". Use even when the user does not say \"skill\" or \"Arcads\" but the visual is clearly the halftone-collage look or the request is decode-then-animate on Arcads. Default image nano-banana-2, default video Seedance 2.0; never use arcads_add_text_overlay.",
+      "url": "https://raw.githubusercontent.com/arcads-ai/skills/main/skills/collage-motion/SKILL.md",
+      "tags": [
+        "arcads",
+        "collage",
+        "halftone",
+        "stop-motion",
+        "nano-banana",
+        "seedance",
+        "motion-graphics"
+      ]
+    },
+    {
+      "name": "image-to-motion",
+      "description": "Turn any still image into a professional motion graphic through the Arcads MCP connector with Seedance 2.5. Covers how to read a reference image, motion vocabulary for any image type — UI, marketing hero, flat-lay, key art, collage, product, character — the prompt clauses that control camera, timing, frozen regions and text fidelity, and the connector's file-upload mechanics. Use whenever the user supplies an image and wants it animated, moving, or turned into video — including \"animate this\", \"turn this into a motion graphic\", \"make this move\", \"この画像動かして\", \"モーショングラフィックにして\", \"I want the cards to pop in\", \"I want the bars to slide up\", or when they describe motion beats for a static image. Also use when asked to write a Seedance prompt for an existing image. Do NOT use for text-to-video with no source image, restyling existing footage (use omniflash-restyle), or cloning a reference video (use viral-clone).",
+      "url": "https://raw.githubusercontent.com/arcads-ai/skills/main/skills/image-to-motion/SKILL.md",
+      "tags": [
+        "arcads",
+        "image-to-video",
+        "motion-graphics",
+        "seedance",
+        "animate",
+        "video"
+      ]
+    },
+    {
+      "name": "omniflash-restyle",
+      "description": "Restyle a raw talking-head video into the look of a reference edit using Arcads Omni Flash (arcads_generate_video_omni_flash). Required inputs: RAW footage, reference video or screenshots, and script (script governs on-screen text spelling, transcript governs timing). Copies the full editing grammar: backgrounds, typography, overlays, zoom in/out, punch-ins, and cut density (many cuts in the reference means many cuts in the output). Locks the person's identity so the face never changes. Omni Flash runs multiple timed scene changes in ONE call via a timestamped prompt (1 to 2s switches are fine); hard limits are 3 to 10s input/output per call. 10s or less is one call; longer footage is chunked, stitched, and the original voice relaid for lip sync. Never trust Omni Flash audio. All outputs in English. Trigger on: 'edit my video like this', 'restyle this', 'make it look like this reel', 'Omni Flash edit', a talking-head clip plus a style reference, or a viral AI-editing tutorial to replicate on Arcads.",
+      "url": "https://raw.githubusercontent.com/arcads-ai/skills/main/skills/omniflash-restyle/SKILL.md",
+      "tags": [
+        "arcads",
+        "omni-flash",
+        "restyle",
+        "edit",
+        "talking-head",
+        "video"
+      ]
+    },
+    {
+      "name": "pixar-ad",
+      "description": "Turn a product (URL and/or product image) into a finished 15-second Pixar-style 3D animated ad in ONE Seedance 2.0 call, with the voice-over and in-scene dialogue generated natively. Produces a researched product read, a character sheet, a composition key frame, a professional dual-track script (narrator plus character dialogue), and the exact generation call. Trigger whenever the user wants a Pixar-style, Disney-style, 3D animated, or animated-film-look ad: \"make a Pixar style ad for this\", \"3D animated ad\", \"make it look like an animated movie\", \"cute 3D character ad\", or pastes a product URL or photo asking for an emotional animated spot. Also trigger on \"15 second animated ad\" or a request for an animated ad script with scene-by-scene prompts. Do NOT use for the Vox paper-collage look (use animated-ad), brick or stop-motion looks, cloning a reference video (viral-clone), or restyling existing footage (omniflash-restyle).",
+      "url": "https://raw.githubusercontent.com/arcads-ai/skills/main/skills/pixar-ad/SKILL.md",
+      "tags": [
+        "arcads",
+        "pixar",
+        "3d",
+        "animated",
+        "seedance",
+        "character",
+        "video"
+      ]
+    },
+    {
+      "name": "viral-clone",
+      "description": "Clone any viral video ad frame by frame with a different product swapped in, on the Arcads MCP connector plus local ffmpeg. Inputs: one reference video plus 1 to 3 product images. Output preserves the reference's shots, cuts, camera, hands, set, lighting, captions, and pacing, with only the product and its packaging replaced. Primary engine: arcads_generate_video_omni_flash in edit mode with a source-as-truth product-lock prompt; fallback: per-shot rebuild (nano-banana-2 stills plus Seedance or Kling image-to-video, stitched). Trigger whenever the user uploads a reference ad and says anything like \"copy this ad with my product\", \"recreate this with my product\", \"clone this viral video\", \"same video but swap the product\", \"この広告をうちの商品でパクって\", \"product swap\", or uploads a viral clip plus product photos with intent to reproduce it. Do NOT use for restyling the user's own raw footage (omniflash-restyle) or from-scratch ads with no reference (arcads ad skills).",
+      "url": "https://raw.githubusercontent.com/arcads-ai/skills/main/skills/viral-clone/SKILL.md",
+      "tags": [
+        "arcads",
+        "clone",
+        "viral",
+        "product-swap",
+        "omni-flash",
+        "ffmpeg",
+        "video"
+      ]
+    },
+    {
+      "name": "fpv-drone-path",
+      "description": "Ready-to-use FPV drone-path video prompt: turn a wide landmark image with a hand-drawn red flight path into one continuous 15-second cinematic first-person drone ride. Use when the user wants an FPV drone flythrough, a \"draw a path on this image and fly it\" video, a world-tour / landmark roller-coaster shot, or asks for the drone-path prompt template.",
+      "url": "https://raw.githubusercontent.com/arcads-ai/skills/main/skills/fpv-drone-path/SKILL.md",
+      "tags": [
+        "fpv",
+        "drone",
+        "video",
+        "prompt-template",
+        "image-to-video",
+        "arcads"
+      ]
+    },
+    {
+      "name": "tsunami-soundstage",
+      "description": "Ready-to-use video prompt for the \"tsunami on a film soundstage\" shot: a wide behind-the-scenes take where a colossal steel door slams, a water tank heaves and a wave sweeps a miniature Paris while the crew scrambles. Use when the user wants this viral miniature-flood soundstage format, a practical-effects behind-the-scenes video, or asks for the tsunami soundstage prompt.",
+      "url": "https://raw.githubusercontent.com/arcads-ai/skills/main/skills/tsunami-soundstage/SKILL.md",
+      "tags": [
+        "video",
+        "prompt-template",
+        "vfx",
+        "soundstage",
+        "miniature",
+        "arcads"
+      ]
+    },
+    {
+      "name": "waacking-disco",
+      "description": "Ready-to-use 30-second, 16:9 waacking / disco-funk music-video prompt driven by a 12-panel storyboard image plus a character sheet, with shot-by-shot timings, character lock and continuity locks. Use when the user wants a choreographed dance or music-video sequence generated from a storyboard, a retro disco stage performance video, or asks for the waacking prompt.",
+      "url": "https://raw.githubusercontent.com/arcads-ai/skills/main/skills/waacking-disco/SKILL.md",
+      "tags": [
+        "video",
+        "prompt-template",
+        "dance",
+        "music-video",
+        "storyboard",
+        "arcads"
+      ]
     }
   ]
 }
