@@ -2,7 +2,7 @@
   "mcpServers": {
     "arcads": {
       "type": "http",
-      "url": "https://mcp.arcads.ai"
+      "url": "https://mcp-pr-1823.pr.arcads.ai"
     }
   }
 }
