@@ -9,6 +9,8 @@
   "homepage": "https://github.com/arcads-ai/skills",
   "repository": "https://github.com/arcads-ai/skills",
   "license": "MIT",
+  "icon": "./.claude-plugin/icon.svg",
+  "privacyPolicyUrl": "https://www.arcads.ai/privacy",
   "keywords": [
     "arcads",
     "ads",
