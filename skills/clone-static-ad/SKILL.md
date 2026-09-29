@@ -205,13 +205,13 @@ The seed should differ between rolls — if the tool exposes a `seed` parameter,
 
 Poll all three assets with `arcads_get_asset` until each reports `status === "generated"` (or `"failed"`). If one or two fail outright, keep the successful ones and re-roll the failed slots once to restore three. Never proceed with fewer than two successful frames. Then call `arcads_watch_asset` on each to get the signed URLs.
 
-Download and open all three variants side-by-side:
+Save all three variants locally (image files only — never execute or `open` them from the shell):
 ```
-curl -sL "<url-1>" -o ~/Downloads/static-ad-clone-v1.png && \
-curl -sL "<url-2>" -o ~/Downloads/static-ad-clone-v2.png && \
-curl -sL "<url-3>" -o ~/Downloads/static-ad-clone-v3.png && \
-open ~/Downloads/static-ad-clone-v1.png ~/Downloads/static-ad-clone-v2.png ~/Downloads/static-ad-clone-v3.png
+curl -sL "<url-1>" -o ~/Downloads/static-ad-clone-v1.png
+curl -sL "<url-2>" -o ~/Downloads/static-ad-clone-v2.png
+curl -sL "<url-3>" -o ~/Downloads/static-ad-clone-v3.png
 ```
+Then present them to the user as clickable file links (e.g. `[static-ad-clone-v1.png](~/Downloads/static-ad-clone-v1.png)`), or inline if a preview tool is available.
 
 **Compare all three variants before presenting.** Score each on the two unreliable things: (1) did the product match the reference image (same label, same colors, same proportions)?, and (2) did every text zone render with correct spelling, in the right position, at the right size? Call these out per variant so the user knows what to look for.
 
@@ -280,5 +280,5 @@ Checklist:
 | `arcads_generate_image` | Step 5 — generate the cloned static ad (called THREE times in parallel for 3 variants, with `referenceImages`) |
 | `arcads_watch_asset` | Step 5 — get the signed URL of the final image |
 | `arcads_add_text_overlay` | Step 5 fallback — burn a clean wordmark/text overlay when the model garbles on-screen text |
-| `open <file>` (after `curl` download) | Inline preview of the final image |
+| `curl -o` (save only) + file links | Deliver the final images |
 | `AskUserQuestion` | Copy confirmation + final feedback |

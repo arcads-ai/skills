@@ -287,12 +287,12 @@ The seed should differ between rolls — if the tool exposes a `seed` parameter,
 
 Poll both assets with `arcads_get_asset` until each reports `status === "generated"` (or `"failed"`). If one fails outright, keep the other and re-roll the failed one once — never proceed with zero successful clips. Then call `arcads_watch_asset` on each to get the signed URLs.
 
-Download and open both variants side-by-side:
+Save both variants locally (media files only — never execute or `open` them from the shell):
 ```
-curl -sL "<url-1>" -o ~/Downloads/hook-clone-v1.mp4 && \
-curl -sL "<url-2>" -o ~/Downloads/hook-clone-v2.mp4 && \
-open ~/Downloads/hook-clone-v1.mp4 ~/Downloads/hook-clone-v2.mp4
+curl -sL "<url-1>" -o ~/Downloads/hook-clone-v1.mp4
+curl -sL "<url-2>" -o ~/Downloads/hook-clone-v2.mp4
 ```
+Then present them to the user as clickable file links (e.g. `[hook-clone-v1.mp4](~/Downloads/hook-clone-v1.mp4)`), or inline if a preview tool is available.
 
 **Compare the two variants before presenting.** Score each on the two unreliable things: (1) did every element that should move actually move (no accidental stills), and (2) did the brand wordmark / on-screen text render with correct spelling? Call these out for both clips so the user knows what to look for.
 
@@ -362,5 +362,5 @@ Checklist:
 | `arcads_watch_asset` | Step 5 — get the signed URL of the final video |
 | `arcads_add_captions` | Step 5 — burn karaoke-synced captions on the generated clip |
 | `arcads_add_text_overlay` | Step 5 fallback — burn a clean wordmark/text overlay when Seedance garbles on-screen text |
-| `open <file>` (after `curl` download) | Inline preview of the final video |
+| `curl -o` (save only) + file links | Deliver the final videos |
 | `AskUserQuestion` | Steps 1, 3, 4, 5 — clarify source, decide to clone, collect brand info, final feedback |

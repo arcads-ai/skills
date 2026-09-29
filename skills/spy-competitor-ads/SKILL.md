@@ -114,7 +114,7 @@ Then, for speed, do everything in as few calls as possible — **navigate, wait 
 
 ### Critical technical facts (learned the hard way)
 
-- **`curl` does NOT work.** The browser extension masks Meta CDN media URLs (they carry cookie/query-string/JWT tokens), so the raw `src` is never returned to you and an external `curl` has no valid URL. **Download in-page instead**: `fetch(src)` → `blob()` → temporary `<a download>` → `click()`. This saves to the browser's Downloads folder. You never need to see the URL.
+- **Shell downloads do NOT work.** The browser extension masks Meta CDN media URLs (they carry cookie/query-string/JWT tokens), so the raw `src` is never returned to you and a shell HTTP client has no valid URL. **Save the media in-page instead**: read the `<video>`/`<img>` source as a blob and trigger a browser "save as" via a temporary `<a download>` link. This only writes the ad's image/video file to the browser's Downloads folder — nothing is executed or opened. You never need to see the URL.
 - **Keyword pollution is common.** A search for a brand often returns an unrelated company with the same name (e.g. "Creatify" the AI tool vs. "Creatify.mx" a sticker shop). Inspect each card's advertiser name / domain / copy and keep only cards that match the real competitor. Drop the rest.
 - **Impressions are hidden** for commercial (non-political) ads. Don't rank by impressions. Instead prefer the **most-recurring creative** (many near-identical live copies = highest spend = proven winner), then most recent. Pick the top N by that heuristic.
 - **Selector + extension depend on the mode.** VIDEO mode uses `<video>` + `.mp4`. IMAGE mode uses the card's main `<img>` + `.jpg`/`.png`. BOTH mode collects `<video>` and `<img>` in the same pass (with the same min-size filter for images). In every mode, filter out tiny avatars/icons (≤ ~200px on either side) so you only keep real ad creatives.
@@ -424,7 +424,7 @@ The downstream skills (`arcads:clone-hook`, `arcads:clone-static-ad`) will ask f
 | `AskUserQuestion` | Step 1b — pick media mode (when not explicit). Step 1c — multi-select competitor shortlist (when auto-discovered). Step 5 — multi-select "clone which?" (standalone runs only). |
 | `WebSearch` / `WebFetch` | Step 1c — auto-find competitors (only if not named) |
 | Browser MCP (`mcp__Claude_in_Chrome__*` / Playwright) | Steps 2–3 — open Ad Library, run extract+download JS |
-| `javascript_tool` (in-page `fetch`→blob→download) | Step 3 — the ONLY reliable download path; curl does not work. Pick the extractor that matches the mode: `<video>` for VIDEO, `<img>` for IMAGE, combined for BOTH. |
+| `javascript_tool` (in-page blob → save-as link) | Step 3 — the ONLY reliable way to save the media files; shell downloads do not work. Pick the extractor that matches the mode: `<video>` for VIDEO, `<img>` for IMAGE, combined for BOTH. |
 | `Bash` (`mv`) | Step 4 — move files from Downloads to `/tmp/` (`.mp4` for VIDEO, `.jpg`/`.png` for IMAGE, both for BOTH) |
 | `arcads:clone-hook` skill | Step 5 — chained per selected video, passing the local `/tmp/spy-ad-*.mp4` path |
 | `arcads:clone-static-ad` skill | Step 5 — chained per selected image, passing the local `/tmp/spy-ad-*.{jpg,png}` path |

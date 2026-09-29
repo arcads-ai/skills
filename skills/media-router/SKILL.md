@@ -143,10 +143,10 @@ Call the chosen tool with the assembled parameters.
 - Tell the user something short and human, e.g. "Generating your image…" or "Editing your video…". Don't narrate which tool or how.
 - Poll with `arcads_get_asset` until `status === "generated"` (or `"failed"`). Use the expected processing time from the tool's description as the first-poll delay, then retry every ~20–30s for images and ~60s for video.
 - On success, call `arcads_watch_asset` (or read the asset's `data.url` for non-media outputs like text analysis) to get the signed URL.
-- Download and open locally:
-  - **Image** → `curl -sL "<url>" -o ~/Downloads/arcads-output.png && open ~/Downloads/arcads-output.png`
-  - **Video** → `curl -sL "<url>" -o ~/Downloads/arcads-output.mp4 && open ~/Downloads/arcads-output.mp4`
-  - **Audio** → `curl -sL "<url>" -o ~/Downloads/arcads-output.mp3 && open ~/Downloads/arcads-output.mp3`
+- Save locally (media file only — never execute or `open` it from the shell) and give the user a clickable file link:
+  - **Image** → `curl -sL "<url>" -o ~/Downloads/arcads-output.png`, then link to `~/Downloads/arcads-output.png`
+  - **Video** → `curl -sL "<url>" -o ~/Downloads/arcads-output.mp4`, then link to `~/Downloads/arcads-output.mp4`
+  - **Audio** → `curl -sL "<url>" -o ~/Downloads/arcads-output.mp3`, then link to `~/Downloads/arcads-output.mp3`
 - On failure, read the error message, fix the obvious issue (re-upload expired refs, drop an invalid parameter, ask the user for a missing input), and retry **once**. If it fails again, surface a short explanation and stop.
 
 Then summarize in one line — what was produced, not which tool you used:
@@ -200,4 +200,4 @@ Stop there. Don't append a paragraph of suggestions.
 | The chosen `arcads_*` tool (picked at runtime) | Step 6 — execute the routed action |
 | `arcads_get_asset` / `arcads_watch_asset` | Step 6 — poll and fetch the signed URL |
 | `AskUserQuestion` | Steps 3, 4, 5, 7 — disambiguate intent, pick between top tool candidates, collect missing params, offer follow-ups |
-| `open <file>` (after `curl` download) | Step 6 — inline preview of the result |
+| `curl -o` (save only) + file link | Step 6 — deliver the result |
