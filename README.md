@@ -9,7 +9,7 @@ The plugin connects Claude to the Arcads MCP server (`https://mcp.arcads.ai`), w
 | Skill | What it does |
 |---|---|
 | **`spy-competitor-ads`** | Finds and downloads your competitors' top ads from the Meta Ad Library: videos, statics, or both. If you don't name any competitors, it finds some and asks you to confirm the list. |
-| **`clone-hook`** | Breaks down the hook of a video ad (timeline, casting, script, captions), then remakes it for your brand with Seedance 2.0. Each run produces two variants. If you don't provide a video, it gets one through `spy-competitor-ads`. |
+| **`clone-hook`** | Breaks down the hook of a video ad (timeline, casting, script, captions), then remakes it for your brand with Seedance 2.0: one frame you confirm, then one 720p take, with text, logos, and captions added at the edit. If you don't provide a video, it gets one through `spy-competitor-ads`. |
 | **`clone-static-ad`** | Remakes a static image ad for your product. It keeps the original's composition, lighting, palette, typography, and copy structure. Each run produces three variants. If you don't provide a reference ad, it gets one through `spy-competitor-ads`. |
 | **`media-router`** | The default entry point for any other request to generate or edit media: "generate an image of…", "remove the background", "add captions", "translate this ad", "upscale this video", and so on. It reads the live Arcads tool list, picks the best tool, and runs it from start to finish. When one of the skills above fits better, it hands off to that skill. |
 
@@ -17,9 +17,13 @@ You can call the skills directly with `/arcads:<skill-name>`, for example `/arca
 
 ## Requirements
 
-- **An Arcads account.** Generation uses your Arcads credits.
+- **An Arcads account.** Generation uses your Arcads credits (see [Credits](#credits)).
 - **Claude Code** or another Claude client that supports plugins and MCP servers.
 - **A browser automation MCP** (only for `spy-competitor-ads`), such as [Claude in Chrome](https://claude.com/chrome), Playwright, or Chrome DevTools. The Meta Ad Library renders with JavaScript, so it can't be scraped without a browser.
+
+## Credits
+
+Video and image generation spends your Arcads credits. Before it generates anything, `clone-hook` describes what it will make and waits for your yes, and `media-router` does the same before any video or multi-variant request. Each yes covers the run it described; a second take, a higher resolution, or another ad asks again.
 
 ## Setup
 

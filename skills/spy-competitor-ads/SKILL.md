@@ -22,7 +22,7 @@ If — and only if — the user's request **does not contain an explicit trigger
 ## Golden rules
 
 1. **Silent execution. No narration, no logging.** Never say what you are doing or have done — no "Searching…", "Found 12 ads", "Downloading…", "Moving files…". No status lines, no step commentary. The user sees only the final downloaded creatives.
-2. **Up to three forms, and only these three.** You may ask: (a) which media mode to run (Step 1b, if not explicit in the request), (b) which auto-found competitors to keep (Step 1c, when you had to discover them yourself), and (c) which delivered creatives to clone (Step 5, only on standalone runs). All use `AskUserQuestion`. Beyond these three, no other questions, confirmations, or "proceed?" check-ins. Between forms, go fully autonomous.
+2. **Up to three forms, and only these three.** You may ask: (a) which media mode to run (Step 1b, if not explicit in the request), (b) which auto-found competitors to keep (Step 1c, when you had to discover them yourself), and (c) which delivered creative to clone (Step 5, only on standalone runs). All use `AskUserQuestion`. Beyond these three, no other questions, confirmations, or "proceed?" check-ins. Between forms, go fully autonomous.
 3. **No analysis.** Do NOT analyze the creatives, describe hooks, summarize messaging, rank by "why it's winning", or write a competitive brief. Do not profile the competitors. Just find and download.
 4. **Auto-find competitors when not given — then confirm.** If the user names competitors, use them as-is, no confirmation. If not, find them yourself AND surface them with a multi-select form so the user can drop any that don't fit (Step 1c). Never silently scrape against a list the user never saw.
 5. **No technical leakage.** Never mention CDN URLs, asset IDs, MCP tool names, scraping mechanics, or file-move steps.
@@ -376,29 +376,27 @@ This step **only fires when arcads:spy-competitor-ads was invoked directly by th
 
 ### The form
 
-Surface every delivered creative as a separate option in a single `AskUserQuestion` call with `multiple: true`:
+Surface every delivered creative as a separate option in a single `AskUserQuestion` call, one pick per run:
 
-> **Question**: "Want me to clone any of these for your brand? Pick the ones to recreate — I'll rebuild each for you."
+> **Question**: "Want me to clone one of these for your brand? Pick the one to recreate. Cloning uses credits, and you'll see what it will generate and confirm before anything is made."
 > **Header**: "Clone which?"
-> **Multiple**: `true`
+> **Multiple**: `false`
 > **Options**: one per delivered file, in the same order they were listed in Step 4. Each option's `label` is the short filename without the leading slug (e.g. "Ad #1 — BrandX (video)" or "Ad #3 — BrandY (image)"). Each option's `description` is one short cue from the card text if you have it (e.g. "Talking-head selfie, 22s"), or just the file type if you don't.
 
-The `custom` default option ("Type your own answer") lets the user say "all of them", "none — I'm done", or a custom note.
+The `custom` default option ("Type your own answer") lets the user say "none — I'm done" or add a custom note.
 
 ### Routing each selection
 
-Walk the user's selection in the order they were picked. For each chosen file:
+Route the chosen file:
 
-1. **Video file (`.mp4`)** → load and run the `arcads:clone-hook` skill, passing the local `/tmp/spy-ad-*.mp4` path as the source video (skipping its Step 1B auto-source, since you already have a video). `arcads:clone-hook` will analyze the hook, then (after its own confirmation prompt) clone it for the user's brand.
+1. **Video file (`.mp4`)** → load and run the `arcads:clone-hook` skill, passing the local `/tmp/spy-ad-*.mp4` path as the source video (skipping its Step 1B auto-source, since you already have a video). `arcads:clone-hook` will analyze the hook, then (after its own confirmation prompt and cost stop) clone it for the user's brand.
 2. **Image file (`.jpg` / `.png`)** → load and run the `arcads:clone-static-ad` skill, passing the local `/tmp/spy-ad-*.{jpg,png}` path as the reference static ad (skipping its Step 1B auto-source, since you already have an image). `arcads:clone-static-ad` will analyze the layout and clone it for the user's brand.
 
-Run the chained skills **sequentially** (not in parallel) — each one needs the user's attention for brand/asset questions, and parallel runs would collide. After each chained skill finishes, move to the next selected file.
-
-If the user picks just one creative, hand off immediately without re-confirming. If they pick "none", stop cleanly — no chaining, no further commentary. If they pick "all of them", chain through every delivered file in order.
+One ad per run: the cloner skill asks its own confirmation and shows its own cost stop before spending anything. If the user answers "none", stop cleanly — no chaining, no further commentary. If the user asks for several, say that one ad runs at a time to keep credits under control, run the first, and offer the next one when it is done; each run gets its own confirmation and cost stop.
 
 ### Carry brand context forward
 
-The downstream skills (`arcads:clone-hook`, `arcads:clone-static-ad`) will ask for the user's brand, product, and assets. If the user already gave that information during Step 1a or in the original request, pass it forward — don't make them re-answer.
+The downstream skills (`arcads:clone-hook`, `arcads:clone-static-ad`) will ask for the user's brand, product, and assets. If the user already gave that information during Step 1a or in the original request, pass it forward to pre-fill those answers. Each cloner skill keeps its own confirmation and cost stop, whatever context you pass.
 
 ---
 
@@ -411,8 +409,8 @@ The downstream skills (`arcads:clone-hook`, `arcads:clone-static-ad`) will ask f
 - **User dismisses the mode form** (Step 1b) or doesn't pick a mode → stop and say "I need to know which kind of ads to grab — video, image, or both." Do not guess.
 - **User deselects every competitor** in the Step 1c multi-select → ask once for a manual list ("Which competitors should I look at instead?"). If still empty, stop.
 - **User picks "none" in the Step 5 clone form** → stop cleanly. No commentary, no follow-up.
-- **User picks one creative in Step 5** → hand off to the matching cloner skill (`arcads:clone-hook` for video, `arcads:clone-static-ad` for image) without an extra confirmation.
-- **Step 5 chain — one of the cloner skills fails or is cancelled by the user** → stop the chain (do not run the remaining selections silently). Surface what happened in one line and let the user restart the chain if they want.
+- **User picks one creative in Step 5** → hand off to the matching cloner skill (`arcads:clone-hook` for video, `arcads:clone-static-ad` for image); it runs its own confirmation and cost stop.
+- **The cloner skill fails or is cancelled by the user** → stop. Surface what happened in one line and let the user restart if they want.
 - **Invoked from inside another skill** (e.g. `arcads:clone-hook` auto-source) → skip Step 5 entirely. The calling skill owns the next step.
 
 ---
@@ -421,10 +419,10 @@ The downstream skills (`arcads:clone-hook`, `arcads:clone-static-ad`) will ask f
 
 | Tool | Where |
 |---|---|
-| `AskUserQuestion` | Step 1b — pick media mode (when not explicit). Step 1c — multi-select competitor shortlist (when auto-discovered). Step 5 — multi-select "clone which?" (standalone runs only). |
+| `AskUserQuestion` | Step 1b — pick media mode (when not explicit). Step 1c — multi-select competitor shortlist (when auto-discovered). Step 5 — single-select "clone which?" (standalone runs only). |
 | `WebSearch` / `WebFetch` | Step 1c — auto-find competitors (only if not named) |
 | Browser MCP (`mcp__Claude_in_Chrome__*` / Playwright) | Steps 2–3 — open Ad Library, run extract+download JS |
 | `javascript_tool` (in-page blob → save-as link) | Step 3 — the ONLY reliable way to save the media files; shell downloads do not work. Pick the extractor that matches the mode: `<video>` for VIDEO, `<img>` for IMAGE, combined for BOTH. |
 | `Bash` (`mv`) | Step 4 — move files from Downloads to `/tmp/` (`.mp4` for VIDEO, `.jpg`/`.png` for IMAGE, both for BOTH) |
-| `arcads:clone-hook` skill | Step 5 — chained per selected video, passing the local `/tmp/spy-ad-*.mp4` path |
-| `arcads:clone-static-ad` skill | Step 5 — chained per selected image, passing the local `/tmp/spy-ad-*.{jpg,png}` path |
+| `arcads:clone-hook` skill | Step 5 — chained for the selected video, passing the local `/tmp/spy-ad-*.mp4` path |
+| `arcads:clone-static-ad` skill | Step 5 — chained for the selected image, passing the local `/tmp/spy-ad-*.{jpg,png}` path |
