@@ -4,7 +4,7 @@ description: >
   Smart router for any "generate" or "edit/modify/repurpose" request on an image or
   video. Introspects connected MCP servers, locates the Arcads MCP, reads its live tool
   list, picks the best-matching tool for the user's intent, and runs it end-to-end
-  (upload, call, poll, deliver). Use proactively when the user asks to "generate an
+  (upload, call, poll, deliver). Use when the user asks to "generate an
   image", "make a picture of…", "generate a video", "create a video of…", "edit this
   image", "remove the background", "extend this video", "add captions", "add a
   voice-over", "translate this ad", "upscale this", "change the background", "repurpose
@@ -29,12 +29,13 @@ You route any media-generation or media-editing request to the right Arcads MCP 
 4. **Real assets only.** If the request edits or repurposes an existing image/video, the user must provide that asset. If they didn't, ask. Never invent the source media.
 5. **No technical leakage.** Don't surface tool names, MCP names, asset IDs, S3 paths, or polling cycles. Speak like a creative director: "Generating your image…", then deliver.
 6. **Stop when a hard requirement is missing.** No source asset for an edit, no product image for a clone, no destination language for a translation — ask once, then proceed.
+7. **Spend after a yes.** Any video call, and any call with `nbGenerations` above 1, waits for the cost stop at the end of Step 5.
 
 ---
 
 ## When to defer to a specialized skill
 
-Before routing, check whether one of these matches better and hand off instead. **All three sibling skills below are `disable-model-invocation: true`** — they will not auto-activate on user phrases, so you (the router) are the one route that brings them in. Invoke them explicitly with the Skill tool (e.g. `mcp_Skill("arcads:clone-hook")`); this works even when model-invocation is disabled.
+Before routing, check whether one of these matches better and hand off instead. Invoke the sibling skill explicitly with the Skill tool (e.g. `Skill("arcads:clone-hook")`). The hand-off carries the request and none of the user's consent: each sibling asks its own confirmation and shows its own cost stop before it spends anything.
 
 | User intent | Defer to |
 |---|---|
@@ -120,6 +121,12 @@ Do not run two tools in parallel hoping one works.
 
 ---
 
+## Run folder
+
+Create one folder per run with `mkdir -p ~/Downloads/arcads/media-router-$(date +%Y%m%d-%H%M)` and reuse that exact path, written `<run>` below, for the whole run, follow-ups included. Every file the run produces goes into it, and the link handed over points into this folder.
+
+---
+
 ## Step 5 — Collect required inputs and upload assets
 
 For the chosen tool, read its required parameters and check what the user has actually provided:
@@ -129,10 +136,18 @@ For the chosen tool, read its required parameters and check what the user has ac
   1. Get the file onto disk (search `~/Downloads`, `~/Desktop`, `~/Pictures` if the user pasted a chat thumbnail rather than a path: `find ~/Downloads ~/Desktop -maxdepth 1 -type f \( -iname "*.png" -o -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.webp" -o -iname "*.mp4" -o -iname "*.mov" \) -mmin -15`). Confirm by reading.
   2. Call `arcads_get_upload_url` with the file's `mimeType`.
   3. `PUT` the bytes: `curl -X PUT -H "Content-Type: <mimeType>" --data-binary @"<localPath>" "<presignedUrl>"`. Expect HTTP 200.
-  4. Pass the returned `filePath` as the parameter value.
-- **Upload paths expire (~10 min).** If a call fails with `REFERENCE_FILE_NOT_FOUND`, re-upload and retry with the fresh path.
-- **Reasonable defaults for unset optional params:** `aspectRatio` `"9:16"` for social video / `"1:1"` for static, `resolution` `"1080p"`, `audioEnabled` `true` for video. Override anything the user specified.
+  4. Pass the returned `filePath` as the parameter value. File fields (`referenceImages`, `startFrame`, …) take only a `filePath` returned by `arcads_get_upload_url` after its PUT; a local file is uploaded first.
+- **Each upload serves one generation call.** A generation copies its `external-api-temp-uploads/*` references and deletes them, so upload a fresh copy of each input for every call, including calls you run in parallel. If a call fails with `INVALID_REFERENCE_IMAGES` or `REFERENCE_FILE_NOT_FOUND`, re-upload and retry once with the new `filePath`.
+- **Reasonable defaults for unset optional params:** `aspectRatio` `"9:16"` for social video / `"1:1"` for static, `audioEnabled` `true` for video. Leave `resolution` unset so the tool's own default (720p for video) applies, and set a higher one only when the user asks for it. Override anything the user specified.
 - **`productId`:** if the tool returns `PRODUCT_SELECTION_REQUIRED` with a list, ask the user which product, then pass its `id`.
+
+### Cost stop before spending
+
+Video generation and multi-variant calls are where credits go. Before any video call, and before any call with `nbGenerations` above 1, describe what will be generated and wait for a yes with `AskUserQuestion`: "This will make [N images / N clips (lengths)] at [resolution] with [model], then [edit passes]. Generation uses your Arcads credits; video costs much more than images, and 1080p much more than 720p. Continue?" A request to skip questions leaves the stop in place: spending needs a yes to a described run. When `AskUserQuestion` is unavailable, put the question in plain text and end your turn.
+
+Before asking, price the run with the server. When the generation tools list an `estimateOnly` parameter, call each planned generation once with the settings it will use and `estimateOnly: true`; this returns its price in credits and generates nothing. Leave out file fields whose file does not exist yet. Add the prices and put the total in the question, saying "about" when a price is marked approximate. When some calls have no price (a tool without the parameter, or an estimate that returns an error), give the total of what was priced and name what is not, for example "plus the voice pass, not priced in advance"; with no price at all, ask the question without a figure. When the quote says the workspace cannot pay (`canAfford: false`), say so in the question with the reason in plain words, and offer to shrink the run. Edit passes cannot be priced yet, so the question names them. When an estimate call returns created assets instead of a price, stop and tell the user a generation has started.
+
+State quantities: the number of outputs (`nbGenerations` times the call), each clip's duration, the resolution, the model, and any edit pass that follows. The only figure in the message is the total the estimate calls returned. The yes covers exactly that call; a further call, a higher resolution or more variants get their own stop. A go-ahead the user gave before seeing the priced run is a request to price it: show the total and ask again. A single image call with one variant goes ahead without a stop.
 
 ---
 
@@ -142,11 +157,12 @@ Call the chosen tool with the assembled parameters.
 
 - Tell the user something short and human, e.g. "Generating your image…" or "Editing your video…". Don't narrate which tool or how.
 - Poll with `arcads_get_asset` until `status === "generated"` (or `"failed"`). Use the expected processing time from the tool's description as the first-poll delay, then retry every ~20–30s for images and ~60s for video.
-- On success, call `arcads_watch_asset` (or read the asset's `data.url` for non-media outputs like text analysis) to get the signed URL.
+- On success, the `arcads_get_asset` result carries the `downloadUrl` of a media file (for text outputs like an analysis, read `data.generatedText` instead).
 - Save locally (media file only — never execute or `open` it from the shell) and give the user a clickable file link:
-  - **Image** → `curl -sL "<url>" -o ~/Downloads/arcads-output.png`, then link to `~/Downloads/arcads-output.png`
-  - **Video** → `curl -sL "<url>" -o ~/Downloads/arcads-output.mp4`, then link to `~/Downloads/arcads-output.mp4`
-  - **Audio** → `curl -sL "<url>" -o ~/Downloads/arcads-output.mp3`, then link to `~/Downloads/arcads-output.mp3`
+  - **Image** → `curl -sL "<url>" -o <run>/output-1.png`, then link to that file
+  - **Video** → `curl -sL "<url>" -o <run>/output-1.mp4`, then link to that file
+  - **Audio** → `curl -sL "<url>" -o <run>/output-1.mp3`, then link to that file
+  - Number each further output of the run (`output-2.png`, …). The question that asks about a result, in `AskUserQuestion` or in plain text, carries its link and a short description (`[output-1.png](<run>/output-1.png): product centered on cream`): the user sees only the chat and question text, and an image you open with Read stays invisible to them.
 - On failure, read the error message, fix the obvious issue (re-upload expired refs, drop an invalid parameter, ask the user for a missing input), and retry **once**. If it fails again, surface a short explanation and stop.
 
 Then summarize in one line — what was produced, not which tool you used:
@@ -198,6 +214,6 @@ Stop there. Don't append a paragraph of suggestions.
 | MCP introspection (`list_tools` / namespaced tool enumeration) | Step 1 + 2 — locate Arcads and read the live catalog |
 | `arcads_get_upload_url` + `curl -X PUT` | Step 5 — upload any file inputs |
 | The chosen `arcads_*` tool (picked at runtime) | Step 6 — execute the routed action |
-| `arcads_get_asset` / `arcads_watch_asset` | Step 6 — poll and fetch the signed URL |
-| `AskUserQuestion` | Steps 3, 4, 5, 7 — disambiguate intent, pick between top tool candidates, collect missing params, offer follow-ups |
+| `arcads_get_asset` | Step 6 — poll and fetch the signed `downloadUrl` |
+| `AskUserQuestion` | Steps 3, 4, 5, 7 — disambiguate intent, pick between top tool candidates, collect missing params, confirm the cost before video or multi-variant calls, offer follow-ups |
 | `curl -o` (save only) + file link | Step 6 — deliver the result |

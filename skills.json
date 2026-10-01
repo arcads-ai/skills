@@ -20,7 +20,7 @@
     },
     {
       "name": "clone-hook",
-      "description": "End-to-end skill that identifies the hook of a video ad and clones it for the user's brand in one continuous flow. Analyzes the source video with arcads_analyze_media (returns hook end timestamp, beat-by-beat timeline, casting sheet, verbatim script, captions, Seedance 2.0 prompts), then optionally rebuilds it with arcads_generate_video_seedance_20 — generating TWO variants in parallel per run to maximize the odds of a winner — preserving structure and emotional beat while swapping in the user's brand identity. Optionally auto-sources a video via spy-competitor-ads when none is provided. Use when a user wants to find and/or recreate the hook of a video ad.",
+      "description": "End-to-end skill that identifies the hook of a video ad and clones it for the user's brand in one continuous flow. Analyzes the source video with arcads_analyze_media (returns hook end timestamp, beat-by-beat timeline, casting sheet, verbatim script, captions, Seedance 2.0 prompts), then optionally rebuilds it: one frame the user confirms, then one Seedance 2.0 take at 720p, with text, logos and captions added at the edit. Spends Arcads credits: the skill describes what it will generate and asks before generating. Optionally auto-sources a video via spy-competitor-ads when none is provided. Use when a user wants to find and/or recreate the hook of a video ad.",
       "url": "https://raw.githubusercontent.com/arcads-ai/skills/main/skills/clone-hook/SKILL.md",
       "tags": [
         "hook",
@@ -36,7 +36,7 @@
     },
     {
       "name": "clone-static-ad",
-      "description": "Clone a static (image) ad for the user's own brand. Optionally takes a reference static ad — if none is provided, auto-runs spy-competitor-ads in static mode to source one — plus at least one real product image and a short description, then produces a brand-new static ad using arcads_generate_image — generating THREE variants in parallel per run to maximize the odds of a winner — preserving the original's composition, hierarchy, lighting, palette, typography, and copy structure while swapping every brand-specific element for the user's product. Use when a user wants to recreate a static/image ad for their product.",
+      "description": "Clone a static (image) ad for the user's own brand. Optionally takes a reference static ad — if none is provided, auto-runs spy-competitor-ads in static mode to source one — plus at least one real product image and a short description, then produces a brand-new static ad using arcads_generate_image — generating THREE variants in parallel per run to maximize the odds of a winner (this spends Arcads credits, and the skill asks before generating) — preserving the original's composition, hierarchy, lighting, palette, typography, and copy structure while swapping every brand-specific element for the user's product. Use when a user wants to recreate a static/image ad for their product.",
       "url": "https://raw.githubusercontent.com/arcads-ai/skills/main/skills/clone-static-ad/SKILL.md",
       "tags": [
         "static",

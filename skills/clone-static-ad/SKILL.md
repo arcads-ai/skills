@@ -22,6 +22,12 @@ A static ad is one frame doing all the work: composition, copy, and product imag
 
 ---
 
+## Run folder
+
+Create one folder per run with `mkdir -p ~/Downloads/arcads/clone-static-ad-$(date +%Y%m%d-%H%M)` and reuse that exact path, written `<run>` below, for the whole run. Every file the run produces goes into it: the reference ad copy, the variants and the final ad. The link handed over at the end points into this folder.
+
+---
+
 ## Step 1 — Get the reference static ad (optional)
 
 The reference static ad is **optional**. There are three paths:
@@ -33,7 +39,7 @@ Either a local image path, an S3 path, or an image they've already pasted/upload
 Do not stop and ask "which static ad?". Instead, run the **`arcads:spy-competitor-ads` skill in static mode** to source candidate references from the Meta Ad Library, then pick one to clone:
 
 1. Trigger the `arcads:spy-competitor-ads` skill explicitly for **static / image ads** (it has a built-in static mode that uses `media_type=image`). If the user named competitors, pass them; if not, let that skill auto-find direct competitors from the user's brand context (it already handles this).
-2. Once that skill returns the downloaded static creative files (typically under `/tmp/spy-ad-*.jpg` / `.png`), pick the **top result** as the reference static ad by default. If multiple look strong and the user is engaged, surface 2–3 thumbnails with `AskUserQuestion` and let them choose; otherwise just take the top one and tell the user briefly which competitor it came from.
+2. Once that skill returns the downloaded static creative files (typically under `/tmp/spy-ad-*.jpg` / `.png`), pick the **top result** as the reference static ad by default and copy it into `<run>`. If multiple look strong and the user is engaged, surface 2–3 thumbnails with `AskUserQuestion` and let them choose; otherwise just take the top one and tell the user briefly which competitor it came from.
 3. Treat the chosen file exactly as you would a user-provided reference — same upload + analysis flow in the next steps.
 
 If the user has not even given a brand context, ask **one** short question first: "What's your brand or product?" — then trigger arcads:spy-competitor-ads in static mode with that.
@@ -65,9 +71,9 @@ The Arcads MCP server cannot read local desktop paths, so every reference image 
 1. Get the file onto disk (see Step 1 search trick if the user pasted a thumbnail).
 2. Call `arcads_get_upload_url` with the file's `mimeType` (e.g. `image/png`, `image/jpeg`). One call per file.
 3. `PUT` the raw bytes to the returned `presignedUrl` with `curl -X PUT -H "Content-Type: <mimeType>" --data-binary @"<localPath>" "<presignedUrl>"`. Expect HTTP 200.
-4. Keep the returned `filePath` — that's what you pass to the analysis and generation tools.
+4. Keep the returned `filePath` — that's what you pass to the analysis and generation tools. File fields (`referenceImages`, …) take only a `filePath` returned by `arcads_get_upload_url` after its PUT; a local file is uploaded first.
 
-**Upload paths expire (~10 min).** If a later call fails with `REFERENCE_FILE_NOT_FOUND`, re-upload the asset and retry with the fresh `filePath`. When in doubt, upload right before the call that consumes it.
+**Each upload serves one generation call.** A generation copies its `external-api-temp-uploads/*` references and deletes them, so upload a fresh copy of each reference image for every generation call, including calls you run in parallel. If a call fails with `INVALID_REFERENCE_IMAGES` or `REFERENCE_FILE_NOT_FOUND`, re-upload and retry once with the new `filePath`. Upload right before the call that consumes it.
 
 ---
 
@@ -164,6 +170,10 @@ Show the user the proposed rebranded copy zone-by-zone (one short block, not a g
 - Tweak the headline (free text)
 - Tweak something else (free text)
 
+Put the stop in the same question: say that this will make three image variants, and that generation uses the user's Arcads credits.
+
+Before asking, price the run with the server. When the generation tools list an `estimateOnly` parameter, call each planned generation once with the settings it will use and `estimateOnly: true`; this returns its price in credits and generates nothing. Leave out file fields whose file does not exist yet. Add the prices and put the total in the question, saying "about" when a price is marked approximate. When some calls have no price (a tool without the parameter, or an estimate that returns an error), give the total of what was priced and name what is not, for example "plus the voice pass, not priced in advance"; with no price at all, ask the question without a figure. When the quote says the workspace cannot pay (`canAfford: false`), say so in the question with the reason in plain words, and offer to shrink the run. When an estimate call returns created assets instead of a price, stop and tell the user a generation has started. "Looks good — generate it" is the yes for that run; a further round of variants asks again. A go-ahead the user gave before seeing the priced run is a request to price it: show the total and ask again.
+
 ---
 
 ## Step 5 — Build the generation prompt and generate
@@ -197,21 +207,23 @@ A good prompt therefore opens with a short **CONSTRAINTS** block (lock product t
 
 Make **three `arcads_generate_image` calls in parallel** (same tool call batch), all with the same parameters:
 - **prompt**: the full layout-faithful prompt from 5a (with the 5b constraints block) — identical across all three rolls
-- **referenceImages**: the same uploaded `filePath`s in the same order across all three rolls — typically the **user's product image** as reference image 1, then the **logo** if applicable, then any additional product angles or secondary images. Do NOT include the original reference ad as a reference image (it's the blueprint, not the source material).
+- **referenceImages**: the same images in the same order across all three rolls, each roll with its own fresh uploads — typically the **user's product image** as reference image 1, then the **logo** if applicable, then any additional product angles or secondary images. Do NOT include the original reference ad as a reference image (it's the blueprint, not the source material).
 - **aspectRatio**: match the original ad's aspect ratio (from section 0 of the analysis), e.g. `"1:1"`, `"4:5"`, `"9:16"`, `"16:9"`.
 - **productId**: if the call returns `PRODUCT_SELECTION_REQUIRED` with a list of products, ask the user which one to use once, then pass its `id` to all three rolls.
 
 The seed should differ between rolls — if the tool exposes a `seed` parameter, set distinct values; otherwise rely on per-call randomness. Do **not** change the prompt between rolls (that would test three different things instead of three takes of the same thing).
 
-Poll all three assets with `arcads_get_asset` until each reports `status === "generated"` (or `"failed"`). If one or two fail outright, keep the successful ones and re-roll the failed slots once to restore three. Never proceed with fewer than two successful frames. Then call `arcads_watch_asset` on each to get the signed URLs.
+Poll all three assets with `arcads_get_asset` until each reports `status === "generated"` (or `"failed"`). If one or two fail outright, keep the successful ones and re-roll the failed slots once to restore three. Never proceed with fewer than two successful frames. Once an asset is generated, `arcads_get_asset` returns its `downloadUrl`; call it explicitly to fetch the file.
 
 Save all three variants locally (image files only — never execute or `open` them from the shell):
 ```
-curl -sL "<url-1>" -o ~/Downloads/static-ad-clone-v1.png
-curl -sL "<url-2>" -o ~/Downloads/static-ad-clone-v2.png
-curl -sL "<url-3>" -o ~/Downloads/static-ad-clone-v3.png
+curl -sL "<url-1>" -o <run>/variant-1.png
+curl -sL "<url-2>" -o <run>/variant-2.png
+curl -sL "<url-3>" -o <run>/variant-3.png
 ```
-Then present them to the user as clickable file links (e.g. `[static-ad-clone-v1.png](~/Downloads/static-ad-clone-v1.png)`), or inline if a preview tool is available.
+Then present them to the user as clickable file links (e.g. `[variant-1.png](<run>/variant-1.png)`, with the real path), or inline if a preview tool is available.
+
+The user sees only the chat text and the question text: an image you open with Read stays invisible to them. So the final question, in `AskUserQuestion` or in plain text, carries one link per variant plus a short description of each, e.g. `Variant 1 — [variant-1.png](<run>/variant-1.png): product label crisp. Which one wins?`. A line in the chat before the question is welcome; the links in the question are what count.
 
 **Compare all three variants before presenting.** Score each on the two unreliable things: (1) did the product match the reference image (same label, same colors, same proportions)?, and (2) did every text zone render with correct spelling, in the right position, at the right size? Call these out per variant so the user knows what to look for.
 
@@ -276,9 +288,8 @@ Checklist:
 | `arcads:spy-competitor-ads` skill (static mode) | Step 1B — auto-source a reference static ad when the user didn't provide one |
 | `arcads_get_upload_url` + `curl -X PUT` | Step 2 — upload the reference ad and user product/logo |
 | `arcads_analyze_media` | Step 3 — extract the layout-faithful description from the reference ad |
-| `arcads_get_asset` | Step 3 + Step 5 — poll for analysis and generation results |
+| `arcads_get_asset` | Step 3 + Step 5 — poll for analysis and generation results, and fetch the `downloadUrl` of each finished image |
 | `arcads_generate_image` | Step 5 — generate the cloned static ad (called THREE times in parallel for 3 variants, with `referenceImages`) |
-| `arcads_watch_asset` | Step 5 — get the signed URL of the final image |
 | `arcads_add_text_overlay` | Step 5 fallback — burn a clean wordmark/text overlay when the model garbles on-screen text |
 | `curl -o` (save only) + file links | Deliver the final images |
 | `AskUserQuestion` | Copy confirmation + final feedback |
