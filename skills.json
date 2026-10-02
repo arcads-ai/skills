@@ -215,19 +215,6 @@
         "miniature",
         "arcads"
       ]
-    },
-    {
-      "name": "waacking-disco",
-      "description": "Ready-to-use 30-second, 16:9 waacking / disco-funk music-video prompt driven by a 12-panel storyboard image plus a character sheet, with shot-by-shot timings, character lock and continuity locks. Use when the user wants a choreographed dance or music-video sequence generated from a storyboard, a retro disco stage performance video, or asks for the waacking prompt.",
-      "url": "https://raw.githubusercontent.com/arcads-ai/skills/main/skills/waacking-disco/SKILL.md",
-      "tags": [
-        "video",
-        "prompt-template",
-        "dance",
-        "music-video",
-        "storyboard",
-        "arcads"
-      ]
     }
   ]
 }
