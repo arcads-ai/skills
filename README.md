@@ -71,11 +71,44 @@ Clone the hook of ~/Downloads/competitor-ad.mp4 for my app
 Generate a product shot of my serum on a marble counter
 ```
 
+## OpenAI package identity
+
+Run the interactive shell builder from the repository root (requires `jq` and `zip`):
+
+```bash
+./scripts/build-plugin.sh
+```
+
+Choose **1 — Codex/OpenAI** or **2 — Claude**. The script writes
+`dist/arcads-codex-<version>.zip` or `dist/arcads-claude-<version>.zip`.
+Running it again for the same target and version replaces that ZIP.
+Each archive contains one `arcads/` folder with the selected manifest,
+the shared skills, MCP configuration, and referenced icons. The builder,
+Git files, marketplace catalog, and previous archives are excluded.
+The `dist/` directory is ignored by Git.
+
+The two hosts have separate manifests and share the same `skills/` directory:
+
+- `.claude-plugin/plugin.json` keeps the Claude plugin name `arcads`.
+- `.codex-plugin/plugin.json` uses the existing OpenAI plugin identifier
+  `app-6aa01081c414819196e58fc42ab585a6`, with `Arcads` as its display name.
+
+Keep the version and shared metadata in both manifests in sync for releases.
+For an OpenAI upload, include `.codex-plugin/`, `.mcp.json`, `skills/`, and
+`.claude-plugin/icon.svg` (referenced by the OpenAI manifest). Exclude the
+Claude manifest and marketplace from that archive so there is only one
+manifest to select. No manual name replacement is needed.
+
+The developer portal still validates the package and its MCP configuration;
+these identity settings do not by themselves publish or validate a release.
+
 ## Repository layout
 
 ```
+.codex-plugin/
+  plugin.json        # OpenAI manifest and existing package identity
 .claude-plugin/
-  plugin.json        # Plugin manifest
+  plugin.json        # Claude plugin manifest
   marketplace.json   # Marketplace entry
 .mcp.json            # Arcads MCP server config
 skills.json          # Skill index (names, descriptions, raw URLs)

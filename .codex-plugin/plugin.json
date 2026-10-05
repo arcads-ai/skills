@@ -1,0 +1,36 @@
+{
+  "name": "app-6aa01081c414819196e58fc42ab585a6",
+  "description": "Reusable AI skills for creating high-converting ads with Arcads — spy on competitors, clone winning hooks and static ads, and route any image/video generation to the right Arcads MCP tool.",
+  "version": "1.0.7",
+  "author": {
+    "name": "Arcads",
+    "url": "https://arcads.ai"
+  },
+  "homepage": "https://github.com/arcads-ai/skills",
+  "repository": "https://github.com/arcads-ai/skills",
+  "license": "MIT",
+  "keywords": [
+    "arcads",
+    "ads",
+    "ad-creative",
+    "video",
+    "image",
+    "meta-ad-library",
+    "competitor-research",
+    "hook",
+    "seedance"
+  ],
+  "mcpServers": "./.mcp.json",
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "Arcads",
+    "shortDescription": "Create ads with Arcads",
+    "longDescription": "Arcads helps marketers and creative teams research competitor ads, adapt video hooks and static ads for their brands, and generate or edit image, video, and audio assets through the Arcads MCP server. The bundled skills guide creative preparation and tool selection. An Arcads account is required for generation, which may consume Arcads credits. Competitor research may require a connected browser automation tool.",
+    "developerName": "Arcads",
+    "category": "Productivity",
+    "capabilities": ["Research competitor ads", "Adapt ad hooks and static ads", "Generate and edit creative assets"],
+    "composerIcon": "./.claude-plugin/icon.svg",
+    "logo": "./.claude-plugin/icon.svg",
+    "privacyPolicyURL": "https://www.arcads.ai/privacy"
+  }
+}
