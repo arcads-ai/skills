@@ -9,6 +9,7 @@ Shared Arcads skills for Claude and Codex/OpenAI.
 | [ads](skills/ads/SKILL.md) | Plan and create ads from a marketing goal. |
 | [amazon-listing-system](skills/amazon-listing-system/SKILL.md) | Create an Amazon listing image set from a product. |
 | [animated-ad](skills/animated-ad/SKILL.md) | Create paper-collage animated ad scripts and prompts. |
+| [cinematic-ads](skills/cinematic-ads/SKILL.md) | Create a cinematic, story-driven short film ad for an e-com product. |
 | [clone-hook](skills/clone-hook/SKILL.md) | Adapt a reference video’s hook for your brand. |
 | [clone-static-ad](skills/clone-static-ad/SKILL.md) | Adapt a static ad for your product. |
 | [collage-motion](skills/collage-motion/SKILL.md) | Generate and animate paper-collage creatives. |

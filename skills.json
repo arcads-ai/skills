@@ -215,6 +215,21 @@
         "miniature",
         "arcads"
       ]
+    },
+    {
+      "name": "cinematic-ads",
+      "description": "Turn product photos plus a brief into a cinematic, photorealistic e-commerce short film (30s to 10 min) made with Seedance 2.5 on the Arcads MCP connector: a real story in movie language where the product is the turning point, never UGC. Asks genre (9 genres: real-life drama, blockbuster trailer, heist, sci-fi, rom-com, detective, funny horror, wildlife doc, brand film), format and length one question at a time, then gets client approval on the script, GPT Image 2 character sheets and location images before generating clips in order, each clip referencing the last ~10s of the previous one, then stitches and offers extras (upscale, music, captions, end card). Trigger when the user wants a cinematic ad, a movie-style or film-look product ad, a short film or mini-movie for their product, a heist/trailer/detective/rom-com/horror/documentary-style ad, or says \"make my product the hero of a film\". Do NOT use for UGC or talking-head ads (ads), Pixar-style 3D (pixar-ad), Vox paper-collage (animated-ad), cloning a reference video (viral-clone) or restyling footage (omniflash-restyle).",
+      "url": "https://raw.githubusercontent.com/arcads-ai/skills/main/skills/cinematic-ads/SKILL.md",
+      "tags": [
+        "video",
+        "cinematic",
+        "short-film",
+        "ecommerce",
+        "storytelling",
+        "seedance",
+        "arcads",
+        "brand"
+      ]
     }
   ]
 }
