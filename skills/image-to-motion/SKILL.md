@@ -104,9 +104,9 @@ Five clauses that carry most of the weight:
 `arcads_generate_video_seedance_25` is the default for image-to-motion.
 
 - `duration` — 4 to 15s. Match it to the beat list; leave a beat of hold at the end.
-- `aspectRatio`, `resolution` — `"720p"` or higher.
+- `aspectRatio` — match the still. Leave `resolution` unset so the tool's own default applies; 1080p is an offer on the kept result.
 - `audioEnabled` — `false` unless sound is wanted.
-- `nbGenerations` — 4 gives useful choice on a single call.
+- `nbGenerations` — 1. A further take is an offer on the kept result.
 
 Use `arcads_generate_video_omni_flash` in edit mode instead when the job is a restyle or a timed multi-scene switch rather than an entrance animation.
 

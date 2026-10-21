@@ -21,7 +21,7 @@ performance constraint on the product, and the script. Spend your effort there.
   dialogue itself. Never pre-synthesise audio, never pass `referenceAudios`,
   never plan to layer a track afterwards.
 - **30 to 33 spoken words total**, across narrator and dialogue combined.
-- **9:16, 1080p** unless the operator says otherwise.
+- **9:16** at the tool's default resolution; 1080p is an offer on the kept result.
 
 ## Inputs
 
@@ -214,7 +214,7 @@ arcads_generate_video_seedance_20
   prompt:          [one self-contained block]
   duration:        15
   aspectRatio:     "9:16"
-  resolution:      "1080p"
+  resolution:      leave unset (the tool's default)
   audioEnabled:    true
   referenceImages: ["videoassets/{keyframe}.png",
                     "videoassets/{sheet}.png",

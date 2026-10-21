@@ -55,7 +55,7 @@ One arcads_generate_video_omni_flash call per 10s-or-less chunk:
 - referenceVideos: [reference chunk temp path]
 - referenceImages: [1 to 3 product image temp paths; put the packaging/box image FIRST if a box swap is needed]
 - duration: integer length of the chunk; aspectRatio matching source (usually "9:16")
-- nbGenerations: 3 to 4 ALWAYS. Artifacts (extra hands, autonomous objects, brand-text garbling, reversion ghosts of the original product) are stochastic and survive prompt-level object-permanence clauses; verified 4 of 4 single samples flawed on a 9s 8-shot unboxing. Sampling plus per-shot selection (Phase D2) is the quality mechanism, not the prompt.
+- nbGenerations: 1. Artifacts (extra hands, autonomous objects, brand-text garbling, reversion ghosts of the original product) are stochastic and survive prompt-level object-permanence clauses, so quality comes from per-shot QC and a targeted fix of the flawed shot (Phase D2), not from extra full-length takes. More takes are an offer on the kept result.
 
 Prompt structure (product-lock, source-as-truth):
 
@@ -70,16 +70,14 @@ Rules: name the original product and the replacement explicitly (the model needs
 
 ## PHASE D2: ALIGNED-VARIANT SHOT SPLICING (the core quality mechanism)
 
-Omni Flash edits preserve the source's cut timing, so ALL variants of the same call are frame-aligned with each other and with the source. Best-of-N therefore works at SHOT granularity, not video granularity:
+Omni Flash edits preserve the source's cut timing, so a fix generated for one window is frame-aligned with the source and with the take. Quality works at SHOT granularity:
 
-1. Cut every variant into shot clips at the source's detected cut boundaries (re-encode, -an, crf 18). Clips of the same shot index are interchangeable.
-2. QC per shot per variant (forensic prompt below, or human eyes on a shot-by-variant frame matrix). Build the matrix: rows shots, columns variants.
-3. Pick the clean take per shot, concat with ffmpeg (seams land exactly on cuts), relay the original audio once at the end.
-4. Any shot with zero clean takes across all variants: reroll ONLY a 3 to 4s window containing that shot (respecting the 3s duration floor), nbGenerations 3, splice the winner back.
+1. Cut the take into shot clips at the source's detected cut boundaries (re-encode, -an, crf 18).
+2. QC per shot (forensic prompt below, or human eyes on a shot-by-shot frame strip).
+3. Concat the clean shots with ffmpeg (seams land exactly on cuts), relay the original audio once at the end.
+4. A shot with an artifact gets one fix: regenerate ONLY a 3 to 4s window containing that shot (respecting the 3s duration floor) with nbGenerations 1, and splice the result back.
 
-The math that justifies this: with per-shot clean probability p = 0.7 and 8 shots, one sample is clean end to end with probability p^8, about 6%. Four aligned variants spliced per shot: (1-(1-p)^4)^8, about 94%, at the same generation cost. Never ship the raw single best variant when a splice is available.
-
-Note the 3s duration floor blocks naive per-shot chunked GENERATION when the reference cuts every 1 to 1.3s; splicing sidesteps the floor because cutting happens locally after generation.
+The 3s duration floor blocks naive per-shot chunked GENERATION when the reference cuts every 1 to 1.3s; splicing sidesteps the floor because cutting happens locally after generation.
 
 ## PHASE E: QC
 
@@ -98,9 +96,9 @@ Generic "does this look right" LLM QC is UNRELIABLE: it passed a video containin
 
 Two calibration notes: the "when uncertain, FAIL" instruction over-reports, so a human eyeball on the flagged timestamps is the final accept; and LLM QC of same-family model output has correlated blind spots, so the human check is not optional for deliverables.
 
-Known permanent weak zone: brand MICRO-TEXT (box labels, tongue tags, small foil lettering) garbles in nearly every generation. Policy: do not burn rerolls on it. Accept shaped-right semi-legible text at social sizes; otherwise patch the logo in post (CapCut overlay or a still-image logo plate), and say so in delivery notes.
+Known permanent weak zone: brand MICRO-TEXT (box labels, tongue tags, small foil lettering) garbles in nearly every generation. Policy: leave it out of the fix windows. Accept shaped-right semi-legible text at social sizes; otherwise patch the logo in post (CapCut overlay or a still-image logo plate), and say so in delivery notes.
 
-High-entropy shots (hands lifting or re-gripping the product, occlusion moments) fail most often; give their reroll windows the highest nbGenerations.
+High-entropy shots (hands lifting or re-gripping the product, occlusion moments) fail most often; they are the first candidates for a fix window.
 
 ## PHASE F: AUDIO RELAY AND ASSEMBLE
 
@@ -132,5 +130,5 @@ Chunk at detected cut boundaries into 6 to 10s segments so stitch seams hide ins
 - **Product colorway flips between shots:** strengthen the "same identical item in every shot, consistent colorway throughout" clause and repeat the full physical description; if it persists, chunk shorter so fewer shots share one call.
 - **Original product ghosts back in one shot:** fix-edit naming the timestamp and the exact swap for that shot only.
 - **Scene composition drifts (new objects, moved hands):** the preservation list was too thin; enumerate the held elements explicitly and reroll.
-- **Extra hands, third products, autonomous objects, reversion ghosts of the original product:** stochastic, prompt clauses reduce but do not eliminate. The fix is architectural: nbGenerations 3 to 4 plus Phase D2 shot splicing.
+- **Extra hands, third products, autonomous objects, reversion ghosts of the original product:** stochastic, prompt clauses reduce but do not eliminate. The fix is architectural: Phase D2 shot QC plus a one-generation fix window.
 - **Stale download URL (tiny file, "moov atom not found"):** signed URLs expire; call arcads_get_asset again for a fresh URL.

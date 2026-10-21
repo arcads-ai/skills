@@ -29,13 +29,12 @@ You route any media-generation or media-editing request to the right Arcads MCP 
 4. **Real assets only.** If the request edits or repurposes an existing image/video, the user must provide that asset. If they didn't, ask. Never invent the source media.
 5. **No technical leakage.** Don't surface tool names, MCP names, asset IDs, S3 paths, or polling cycles. Speak like a creative director: "Generating your image…", then deliver.
 6. **Stop when a hard requirement is missing.** No source asset for an edit, no product image for a clone, no destination language for a translation — ask once, then proceed.
-7. **Spend after a yes.** Any video call, and any call with `nbGenerations` above 1, waits for the cost stop at the end of Step 5.
 
 ---
 
 ## When to defer to a specialized skill
 
-Before routing, check whether one of these matches better and hand off instead. Invoke the sibling skill explicitly with the Skill tool (e.g. `Skill("arcads:clone-hook")`). The hand-off carries the request and none of the user's consent: each sibling asks its own confirmation and shows its own cost stop before it spends anything.
+Before routing, check whether one of these matches better and hand off instead. Invoke the sibling skill explicitly with the Skill tool (e.g. `Skill("arcads:clone-hook")`). The hand-off carries the request along with the user's brand and product details.
 
 | User intent | Defer to |
 |---|---|
@@ -141,13 +140,9 @@ For the chosen tool, read its required parameters and check what the user has ac
 - **Reasonable defaults for unset optional params:** `aspectRatio` `"9:16"` for social video / `"1:1"` for static, `audioEnabled` `true` for video. Leave `resolution` unset so the tool's own default (720p for video) applies, and set a higher one only when the user asks for it. Override anything the user specified.
 - **`productId`:** if the tool returns `PRODUCT_SELECTION_REQUIRED` with a list, ask the user which product, then pass its `id`.
 
-### Cost stop before spending
+### Defaults
 
-Video generation and multi-variant calls are where credits go. Before any video call, and before any call with `nbGenerations` above 1, describe what will be generated and wait for a yes with `AskUserQuestion`: "This will make [N images / N clips (lengths)] at [resolution] with [model], then [edit passes]. Generation uses your Arcads credits; video costs much more than images, and 1080p much more than 720p. Continue?" A request to skip questions leaves the stop in place: spending needs a yes to a described run. When `AskUserQuestion` is unavailable, put the question in plain text and end your turn.
-
-Before asking, price the run with the server. When the generation tools list an `estimateOnly` parameter, call each planned generation once with the settings it will use and `estimateOnly: true`; this returns its price in credits and generates nothing. Leave out file fields whose file does not exist yet. Add the prices and put the total in the question, saying "about" when a price is marked approximate. When some calls have no price (a tool without the parameter, or an estimate that returns an error), give the total of what was priced and name what is not, for example "plus the voice pass, not priced in advance"; with no price at all, ask the question without a figure. When the quote says the workspace cannot pay (`canAfford: false`), say so in the question with the reason in plain words, and offer to shrink the run. Edit passes cannot be priced yet, so the question names them. When an estimate call returns created assets instead of a price, stop and tell the user a generation has started.
-
-State quantities: the number of outputs (`nbGenerations` times the call), each clip's duration, the resolution, the model, and any edit pass that follows. The only figure in the message is the total the estimate calls returned. The yes covers exactly that call; a further call, a higher resolution or more variants get their own stop. A go-ahead the user gave before seeing the priced run is a request to price it: show the total and ask again. A single image call with one variant goes ahead without a stop.
+One output per call, the tool's own resolution, one clip. Raise any of them when the user asks. If a generation reports insufficient credits, say so in one line and stop.
 
 ---
 
@@ -215,5 +210,5 @@ Stop there. Don't append a paragraph of suggestions.
 | `arcads_get_upload_url` + `curl -X PUT` | Step 5 — upload any file inputs |
 | The chosen `arcads_*` tool (picked at runtime) | Step 6 — execute the routed action |
 | `arcads_get_asset` | Step 6 — poll and fetch the signed `downloadUrl` |
-| `AskUserQuestion` | Steps 3, 4, 5, 7 — disambiguate intent, pick between top tool candidates, collect missing params, confirm the cost before video or multi-variant calls, offer follow-ups |
+| `AskUserQuestion` | Steps 3, 4, 5, 7 — disambiguate intent, pick between top tool candidates, collect missing params, offer follow-ups |
 | `curl -o` (save only) + file link | Step 6 — deliver the result |
