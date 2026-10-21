@@ -152,7 +152,7 @@ overall style & aspect ratio → background description → product placement (L
 Be explicit about positions and sizes. End with the aspect ratio.
 ```
 
-Poll with `arcads_get_asset` until `status === "GENERATED"`. Read `data.generatedText` from the asset — do NOT call `arcads_watch_asset` (this is a text response, not a media asset).
+Poll with `arcads_get_asset` until `status === "generated"`. Read `data.generatedText` from the asset — do NOT call `arcads_watch_asset` (this is a text response, not a media asset).
 
 ---
 
@@ -169,10 +169,6 @@ Show the user the proposed rebranded copy zone-by-zone (one short block, not a g
 - Looks good — generate it
 - Tweak the headline (free text)
 - Tweak something else (free text)
-
-Put the stop in the same question: say that this will make three image variants, and that generation uses the user's Arcads credits.
-
-Before asking, price the run with the server. When the generation tools list an `estimateOnly` parameter, call each planned generation once with the settings it will use and `estimateOnly: true`; this returns its price in credits and generates nothing. Leave out file fields whose file does not exist yet. Add the prices and put the total in the question, saying "about" when a price is marked approximate. When some calls have no price (a tool without the parameter, or an estimate that returns an error), give the total of what was priced and name what is not, for example "plus the voice pass, not priced in advance"; with no price at all, ask the question without a figure. When the quote says the workspace cannot pay (`canAfford: false`), say so in the question with the reason in plain words, and offer to shrink the run. When an estimate call returns created assets instead of a price, stop and tell the user a generation has started. "Looks good — generate it" is the yes for that run; a further round of variants asks again. A go-ahead the user gave before seeing the priced run is a request to price it: show the total and ask again.
 
 ---
 

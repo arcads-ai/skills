@@ -306,9 +306,9 @@ arcads_generate_video_seedance_20
   referenceImages: ["videoassets/<assetId>.png"]
   aspectRatio:     9:16 (or 16:9)
   duration:        from the Phase 2 formula
-  resolution:      1080p
+  resolution:      leave unset (the tool's default); 1080p is an offer on the kept result
   audioEnabled:    true, unless the risk profile below applies
-  nbGenerations:   2 for hand mode or any CREATIVE morph, else 1
+  nbGenerations:   1; hand mode and CREATIVE morphs offer a second take on the kept result
 ```
 
 ~7 minutes per call.

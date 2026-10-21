@@ -243,7 +243,7 @@ Close each clip with:
 You write prompts; the user runs them through the Arcads connector. So they wire it up correctly, state these once when handing off:
 
 - **Tool:** `arcads_generate_video_seedance_20`, one call per clip.
-- **Per clip params:** `prompt` = the clip block you wrote; `duration` = that clip's length in seconds (4 to 15); `aspectRatio` = `9:16` for TikTok/Reels/Shorts, `16:9` for YouTube/landscape; `resolution` = `1080p` for final, `720p` for cheaper test passes.
+- **Per clip params:** `prompt` = the clip block you wrote; `duration` = that clip's length in seconds (4 to 15); `aspectRatio` = `9:16` for TikTok/Reels/Shorts, `16:9` for YouTube/landscape; `resolution` = left unset so the tool's default applies; 1080p is an offer on the kept result.
 - **Audio:** leave `audioEnabled` off. The render is silent on purpose; VO goes on in post.
 - **Product image (upload flow):** local paths fail on the remote MCP. `arcads_get_upload_url` (pass mimeType) -> HTTP PUT raw bytes to the presigned URL with matching Content-Type -> if reused across clips, `arcads_register_image` to mint a persistent asset -> use the `videoassets/{id}.png` path in `referenceImages`. Prefer a paper-cutout version of the product as the reference (see Gotchas).
 - **Voice-over:** external (ElevenLabs / real read) or in-Arcads (`arcads_list_voices` -> pick a calm `voiceId` -> `arcads_text_to_speech` per clip). Either way it's layered in post.
