@@ -18,6 +18,7 @@ Shared Arcads skills for Claude and Codex/OpenAI.
 | [media-router](skills/media-router/SKILL.md) | Route media requests to the appropriate Arcads tool. |
 | [omniflash-restyle](skills/omniflash-restyle/SKILL.md) | Restyle talking-head footage using a reference edit. |
 | [pixar-ad](skills/pixar-ad/SKILL.md) | Create a stylized 3D animated product ad. |
+| [song-ad](skills/song-ad/SKILL.md) | Create an AI music ad: a song about your product over an animated story. |
 | [spy-competitor-ads](skills/spy-competitor-ads/SKILL.md) | Find competitor ads in the Meta Ad Library. |
 | [static-to-motion](skills/static-to-motion/SKILL.md) | Turn a finished static ad into a short video. |
 | [tsunami-soundstage](skills/tsunami-soundstage/SKILL.md) | Create a miniature-flood soundstage video prompt. |

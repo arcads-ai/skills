@@ -1,6 +1,6 @@
 ---
 name: clone-hook
-description: Identify a video ad's hook and clone it for the user's brand: one frame to approve, then one 720p take, with text and captions added at the edit. Invoke with /arcads:clone-hook or via another skill.
+description: 'Identify a video ad''s hook and clone it for the user''s brand: one frame to approve, then one 720p take, with text and captions added at the edit. Invoke with /arcads:clone-hook or via another skill.'
 ---
 
 # Arcads Clone Hook
