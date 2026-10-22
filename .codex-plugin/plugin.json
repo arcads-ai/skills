@@ -31,6 +31,9 @@
     "capabilities": ["Research competitor ads", "Adapt ad hooks and static ads", "Generate and edit creative assets"],
     "composerIcon": "./.claude-plugin/icon.svg",
     "logo": "./.claude-plugin/icon.svg",
-    "privacyPolicyURL": "https://www.arcads.ai/privacy"
+    "privacyPolicyURL": "https://www.arcads.ai/privacy",
+    "websiteURL": "https://www.arcads.ai",
+    "supportURL": "https://help.arcads.ai/en/",
+    "termsOfServiceURL": "https://www.arcads.ai/terms"
   }
 }
