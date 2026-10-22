@@ -230,6 +230,22 @@
         "arcads",
         "brand"
       ]
+    },
+    {
+      "name": "song-ad",
+      "description": "AI music ads: turn a product into a song ad (singing ad, music ad, jingle, brand music video). A real song about the product (the user's lyrics or 2-3 options written from the brief) is generated with Suno v6 via arcads_create_music, vocals from the first second, then plays over a fast-cut animated story (setup, turn, payoff) generated with Seedance 2.5 in blocks, each block hearing its own slice of the song, and ends on a held, centred product hero. Nobody sings on screen. Approvals on lyrics, song, character/product sheets and shot list; local ffmpeg slices the song and stitches the blocks with the full song on top, then arcads_add_subtitles adds captions. Generation uses Arcads credits. Use when a user wants their product sung, a song ad, a music ad, a jingle or a musical ad.",
+      "url": "https://raw.githubusercontent.com/arcads-ai/skills/main/skills/song-ad/SKILL.md",
+      "tags": [
+        "music",
+        "song",
+        "jingle",
+        "video",
+        "suno",
+        "seedance",
+        "animation",
+        "arcads",
+        "brand"
+      ]
     }
   ]
 }
