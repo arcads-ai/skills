@@ -1,7 +1,7 @@
 {
   "name": "arcads",
-  "description": "Reusable AI skills for creating high-converting ads with Arcads — spy on competitors, clone winning hooks and static ads, and route any image/video generation to the right Arcads MCP tool.",
-  "version": "1.0.10",
+  "description": "Create ads with Arcads: UGC and actor-led video ads, static image ads, Amazon listing images, and cinematic, Pixar-style, animated and AI music ads. Research competitor ads in the Meta Ad Library, clone winning hooks, statics and viral videos with your product, animate stills, and edit, caption or translate existing creatives. Requires an Arcads account; generation uses Arcads credits.",
+  "version": "1.0.11",
   "author": {
     "name": "Arcads",
     "url": "https://arcads.ai"
