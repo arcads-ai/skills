@@ -24,21 +24,6 @@ Shared Arcads skills for Claude and Codex/OpenAI.
 | [tsunami-soundstage](skills/tsunami-soundstage/SKILL.md) | Create a miniature-flood soundstage video prompt. |
 | [viral-clone](skills/viral-clone/SKILL.md) | Recreate a reference video ad with a different product. |
 
-## Build a plugin ZIP
-
-Requires `jq` and `zip`. From the repository root, run:
-
-```sh
-sh scripts/build-plugin.sh
-```
-
-Choose **1 — Codex/OpenAI** or **2 — Claude**. The ZIP is saved to
-`dist/arcads-<target>-<version>.zip`. Rebuilding the same target and version
-replaces the existing ZIP.
-
-The build includes the selected manifest, shared `skills/`, MCP configuration,
-and referenced icons. Scripts and repository files are excluded.
-
 ## Updating a release
 
 Edit skills in `skills/` and update the version in both manifests:
