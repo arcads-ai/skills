@@ -1,2 +1,4 @@
 .DS_Store
 /dist/
+.claude/settings.local.json
+.claude/worktrees/

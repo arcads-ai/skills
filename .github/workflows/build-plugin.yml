@@ -1,0 +1,116 @@
+# Build a host-specific plugin package (Codex/OpenAI or Claude).
+# Run it from the Actions tab: "Build plugin" > "Run workflow", choose the
+# branch and the target, then download the artifact from the run page.
+name: Build plugin
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: Platform to build for
+        type: choice
+        options:
+          - codex
+          - claude
+        default: codex
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      TARGET: ${{ inputs.target }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate manifests
+        id: meta
+        run: |
+          set -eu
+          manifest=".$TARGET-plugin/plugin.json"
+          version=$(jq -er '.version | strings | select(test("^[A-Za-z0-9][A-Za-z0-9.+-]*$"))' "$manifest")
+          name=$(jq -er '.name | strings | select(length > 0)' "$manifest")
+          jq -e . .mcp.json >/dev/null
+
+          # Validate Codex listing fields before generating an upload package.
+          if [ "$TARGET" = codex ]; then
+            if ! jq -e '
+              def text($limit): type == "string" and test("\\S") and length <= $limit;
+              .interface |
+              (.displayName | text(30)) and
+              (.shortDescription | text(30)) and
+              (.longDescription | text(4000)) and
+              (.developerName | text(80)) and
+              (.category | text(120)) and
+              (.composerIcon | text(1024)) and
+              (.logo | text(1024)) and
+              (.capabilities | type == "array" and length <= 20 and all(.[]; text(120)))
+            ' "$manifest" >/dev/null; then
+              echo "::error::Missing or invalid Codex interface metadata in $manifest."
+              exit 1
+            fi
+          fi
+
+          # Reject symlinks, including links to directories outside the repo.
+          for source in skills ".$TARGET-plugin" .claude-plugin .mcp.json; do
+            if [ -n "$(find "$source" -type l -print)" ]; then
+              echo "::error::Symbolic link found in $source."
+              exit 1
+            fi
+          done
+          set -- skills/*/SKILL.md
+          [ -f "$1" ] || { echo "::error::No skills found."; exit 1; }
+
+          echo "manifest=$manifest" >> "$GITHUB_OUTPUT"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+
+      - name: Assemble package
+        env:
+          MANIFEST: ${{ steps.meta.outputs.manifest }}
+        run: |
+          set -eu
+          package="$RUNNER_TEMP/package/arcads"
+          mkdir -p "$package/.$TARGET-plugin"
+          cp "$MANIFEST" "$package/$MANIFEST"
+          cp .mcp.json "$package/.mcp.json"
+          cp -R skills "$package/skills"
+          find "$package/skills" \( -name '.*' -o -name __MACOSX -o -name __pycache__ \) -prune -exec rm -rf {} +
+
+          # Copy the icons referenced by the manifest, preserving relative paths.
+          jq -r '[.icon, .interface.composerIcon, .interface.logo] | map(select(. != null)) | unique[]' "$MANIFEST" |
+          while IFS= read -r icon; do
+            case "$icon" in
+              ./*) relative=${icon#./} ;;
+              *) echo "::error::Invalid icon path: $icon"; exit 1 ;;
+            esac
+            case "/$relative/" in
+              */../*) echo "::error::Icon path points outside the plugin: $icon"; exit 1 ;;
+            esac
+            [ -f "$relative" ] || { echo "::error::Missing icon: $relative"; exit 1; }
+            mkdir -p "$package/$(dirname -- "$relative")"
+            cp "$relative" "$package/$relative"
+          done
+
+          echo "Package contents:"
+          (cd "$RUNNER_TEMP/package" && find . -type f | sort)
+
+      # GitHub zips the artifact on download, so the downloaded
+      # arcads-<target>-<version>.zip contains the arcads/ folder, as before.
+      - name: Upload package
+        uses: actions/upload-artifact@v4
+        with:
+          name: arcads-${{ inputs.target }}-${{ steps.meta.outputs.version }}
+          path: ${{ runner.temp }}/package
+          include-hidden-files: true
+          if-no-files-found: error
+
+      - name: Summary
+        run: |
+          {
+            echo "### arcads-$TARGET-${{ steps.meta.outputs.version }}"
+            echo "Package name: \`${{ steps.meta.outputs.name }}\`"
+            echo "Download the artifact from this run's Summary page."
+          } >> "$GITHUB_STEP_SUMMARY"

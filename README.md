@@ -26,18 +26,20 @@ Shared Arcads skills for Claude and Codex/OpenAI.
 
 ## Build a plugin ZIP
 
-Requires `jq` and `zip`. From the repository root, run:
+The ZIP is built by the **Build plugin** GitHub Actions workflow
+(`.github/workflows/build-plugin.yml`). The plugin directory only accepts
+Markdown, text, JSON, YAML and image files, so the build can't live in a shell
+script in this repository.
 
-```sh
-sh scripts/build-plugin.sh
-```
+1. Open the repository's **Actions** tab and select **Build plugin**.
+2. Click **Run workflow**, choose the branch and the target (**codex** or
+   **claude**), and run it.
+3. When the run finishes, download the `arcads-<target>-<version>` artifact
+   from the run's summary page.
 
-Choose **1 — Codex/OpenAI** or **2 — Claude**. The ZIP is saved to
-`dist/arcads-<target>-<version>.zip`. Rebuilding the same target and version
-replaces the existing ZIP.
-
-The build includes the selected manifest, shared `skills/`, MCP configuration,
-and referenced icons. Scripts and repository files are excluded.
+The download is a ZIP containing an `arcads/` folder with the selected
+manifest, shared `skills/`, MCP configuration and referenced icons. For Codex,
+the workflow also validates the listing fields in `.codex-plugin/plugin.json`.
 
 ## Updating a release
 
