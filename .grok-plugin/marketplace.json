@@ -1,0 +1,44 @@
+{
+  "name": "arcads",
+  "description": "Arcads plugin for Grok: create ads with AI — video, image and music ad creatives, competitor research, ad cloning, and editing.",
+  "owner": {
+    "name": "Arcads",
+    "email": "hello@arcads.ai"
+  },
+  "plugins": [
+    {
+      "name": "arcads",
+      "description": "Create ads with Arcads: UGC and actor-led video ads, static image ads, Amazon listing images, and cinematic, Pixar-style, animated and AI music ads. Research competitor ads, clone winning hooks and statics, animate stills, and edit, caption or translate creatives. Sign in with an Arcads account on first connect.",
+      "category": "media",
+      "source": "./",
+      "version": "1.0.11",
+      "author": {
+        "name": "Arcads",
+        "url": "https://arcads.ai"
+      },
+      "homepage": "https://www.arcads.ai",
+      "keywords": [
+        "arcads",
+        "arcads mcp",
+        "ads",
+        "ad-creative",
+        "video",
+        "image",
+        "competitor-research"
+      ],
+      "domains": [
+        "arcads.ai",
+        "www.arcads.ai",
+        "app.arcads.ai",
+        "mcp.arcads.ai"
+      ],
+      "tags": [
+        "ads",
+        "creative",
+        "video",
+        "image",
+        "arcads"
+      ]
+    }
+  ]
+}

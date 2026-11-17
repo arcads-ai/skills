@@ -1,4 +1,4 @@
-# Build a host-specific plugin package (Codex/OpenAI or Claude).
+# Build a host-specific plugin package (Codex/OpenAI, Claude or Grok).
 # Run it from the Actions tab: "Build plugin" > "Run workflow", choose the
 # branch and the target, then download the artifact from the run page.
 name: Build plugin
@@ -12,6 +12,7 @@ on:
         options:
           - codex
           - claude
+          - grok
         default: codex
 
 permissions:

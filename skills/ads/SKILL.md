@@ -27,7 +27,8 @@ creative producer on top of it. Five jobs, in order:
 
 Everything goes through the Arcads MCP tools. Their names all start with `arcads_`
 (e.g. `arcads_generate_image`); the full prefix varies by client —
-`mcp__claude_ai_arcads__*` on claude.ai, `mcp__arcads__*` or similar in Claude Code.
+`mcp__claude_ai_arcads__*` on claude.ai, `mcp__arcads__*` or similar in Claude Code,
+Grok and other clients.
 **Match on the `arcads_` tool name, never on the prefix.**
 
 If no `arcads_*` tools are available, don't fail with an error — walk the user
@@ -37,7 +38,10 @@ through the 60-second setup instead:
    connect **Arcads**, then start a new chat.
 2. **Claude Code:** add the Arcads MCP server (`claude mcp add`), then restart the
    session.
-3. **No Arcads account yet:** create one at arcads.ai first, then connect.
+3. **Grok (Grok Bot / Grok Build):** install the **Arcads** plugin
+   (`grok plugin install arcads-ai/skills --trust`), then sign in to Arcads when
+   the MCP server asks.
+4. **No Arcads account yet:** create one at arcads.ai first, then connect.
 
 There is no HTTP fallback. Credits are billed by the backend. If a generation
 returns an out-of-credits state, the widget shows an Upgrade button — relay that

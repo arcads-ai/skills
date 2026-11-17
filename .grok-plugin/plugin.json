@@ -1,0 +1,26 @@
+{
+  "name": "arcads",
+  "version": "1.0.11",
+  "description": "Create ads with Arcads: UGC and actor-led video ads, static image ads, Amazon listing images, and cinematic, Pixar-style, animated and AI music ads. Research competitor ads in the Meta Ad Library, clone winning hooks, statics and viral videos with your product, animate stills, and edit, caption or translate existing creatives. Uses the hosted Arcads MCP server at mcp.arcads.ai: sign in with an Arcads account on first connect. Generation uses Arcads credits.",
+  "author": {
+    "name": "Arcads",
+    "url": "https://arcads.ai"
+  },
+  "homepage": "https://github.com/arcads-ai/skills",
+  "repository": "https://github.com/arcads-ai/skills",
+  "license": "MIT",
+  "keywords": [
+    "arcads",
+    "arcads mcp",
+    "ads",
+    "ad-creative",
+    "video",
+    "image",
+    "meta-ad-library",
+    "competitor-research",
+    "hook",
+    "seedance"
+  ],
+  "mcpServers": "./.mcp.json",
+  "skills": "./skills/"
+}
