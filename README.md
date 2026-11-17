@@ -1,6 +1,6 @@
 # Arcads Skills
 
-Shared Arcads skills for Claude and Codex/OpenAI.
+Shared Arcads skills for Claude, Codex/OpenAI and Grok (Grok Bot and Grok Build).
 
 ## Skills
 
@@ -24,6 +24,34 @@ Shared Arcads skills for Claude and Codex/OpenAI.
 | [tsunami-soundstage](skills/tsunami-soundstage/SKILL.md) | Create a miniature-flood soundstage video prompt. |
 | [viral-clone](skills/viral-clone/SKILL.md) | Recreate a reference video ad with a different product. |
 
+## Install in Grok
+
+Grok reads the plugin straight from this repository: `.grok-plugin/plugin.json`
+(manifest), `.mcp.json` (the hosted Arcads MCP server) and `skills/`.
+
+```bash
+grok plugin install arcads-ai/skills --trust
+```
+
+The Arcads MCP server asks the user to sign in to Arcads on first connect.
+
+To list Arcads in the Grok plugin marketplace (what Grok Bot browses), add a
+remote entry to `.grok-plugin/marketplace.json` in
+[xai-org/plugin-marketplace](https://github.com/xai-org/plugin-marketplace),
+pinned to a full commit SHA of this repository, and open a PR there. Use the
+entry in this repository's `.grok-plugin/marketplace.json` as the template,
+with this `source`:
+
+```json
+"source": {
+  "source": "url",
+  "url": "https://github.com/arcads-ai/skills.git",
+  "sha": "<full 40-character commit SHA>"
+}
+```
+
+To ship an update, bump the `sha` there.
+
 ## Build a plugin ZIP
 
 The ZIP is built by the **Build plugin** GitHub Actions workflow
@@ -32,8 +60,8 @@ Markdown, text, JSON, YAML and image files, so the build can't live in a shell
 script in this repository.
 
 1. Open the repository's **Actions** tab and select **Build plugin**.
-2. Click **Run workflow**, choose the branch and the target (**codex** or
-   **claude**), and run it.
+2. Click **Run workflow**, choose the branch and the target (**codex**,
+   **claude** or **grok**), and run it.
 3. When the run finishes, download the `arcads-<target>-<version>` artifact
    from the run's summary page.
 
@@ -43,10 +71,14 @@ the workflow also validates the listing fields in `.codex-plugin/plugin.json`.
 
 ## Updating a release
 
-Edit skills in `skills/` and update the version in both manifests:
+Edit skills in `skills/` and update the version in every manifest:
 
 - `.codex-plugin/plugin.json` — OpenAI package identity and listing metadata.
 - `.claude-plugin/plugin.json` — Claude package identity (`arcads`).
+- `.grok-plugin/plugin.json` — Grok package identity (`arcads`).
+- `.claude-plugin/marketplace.json` and `.grok-plugin/marketplace.json` — the
+  `version` of the `arcads` entry.
 
 Keep their package names unchanged. Build the target ZIP, then upload it to
-that platform. Building does not publish the plugin.
+that platform. Building does not publish the plugin. For Grok, bump the pinned
+`sha` in xai-org/plugin-marketplace instead.
